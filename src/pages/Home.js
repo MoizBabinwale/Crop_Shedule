@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { submitData } from "../api/api";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -35,9 +35,8 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/schedule/schedule", formData);
-      alert("Schedule entry submitted successfully!");
-      console.log(res.data);
+      const response = await submitData(formData); // ✅ Add await here
+      console.log(response);
     } catch (err) {
       console.error(err);
       alert("Submission failed.");
