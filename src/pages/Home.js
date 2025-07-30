@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { submitData } from "../api/api";
+import { toast } from "react-toastify";
 
 const Home = () => {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     sheduleId: "",
     date: "",
@@ -34,12 +36,47 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // disable page
+
+    toast.loading("Please wait, creating new entry...", { toastId: "loading" });
+
     try {
-      const response = await submitData(formData); // ✅ Add await here
-      console.log(response);
+      const response = await submitData(formData);
+      if (response) {
+        toast.dismiss("loading"); // remove loading toast
+        toast.success("Schedule Entry Created successfully!", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          theme: "light",
+          // transition: Bounce,
+        });
+        setFormData({
+          sheduleId: "",
+          date: "",
+          perLiter: "",
+          waterPerAcre: "",
+          totalAcres: "",
+          totalWater: "",
+          productAmountMg: "",
+          productAmountLtr: "",
+          useStartDay: "",
+          products: [
+            { name: "", quantity: "" },
+            { name: "", quantity: "" },
+            { name: "", quantity: "" },
+          ],
+          instructions: "",
+        });
+      }
     } catch (err) {
-      console.error(err);
-      alert("Submission failed.");
+      toast.dismiss("loading");
+      toast.error("Failed to create entry!");
+    } finally {
+      setLoading(false); // enable page
     }
   };
 
@@ -139,6 +176,11 @@ const Home = () => {
           </div>
         </div>
       </form>
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="text-white text-xl font-semibold animate-pulse">कृपया प्रतीक्षा करें...</div>
+        </div>
+      )}
     </>
   );
 };
