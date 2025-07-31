@@ -1,184 +1,178 @@
-import React, { useState } from "react";
-import { submitData } from "../api/api";
+import React, { useEffect, useState } from "react";
+import { addCropData, deleteCropById, editCropData, getCropData } from "../api/api";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 const Home = () => {
+  const [cropList, setCropList] = useState([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newCrop, setNewCrop] = useState({ name: "", weeks: "" });
+  const [editCropId, setEditCropId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    sheduleId: "",
-    date: "",
-    perLiter: "",
-    waterPerAcre: "",
-    totalAcres: "",
-    totalWater: "",
-    productAmountMg: "",
-    productAmountLtr: "",
-    useStartDay: "",
-    products: [
-      { name: "", quantity: "" },
-      { name: "", quantity: "" },
-      { name: "", quantity: "" },
-    ],
-    instructions: "",
-  });
 
-  const handleChange = (e, index = null, field = null) => {
-    const { name, value } = e.target;
+  // Fetch crops
+  useEffect(() => {
+    setLoading(true);
+    fetchCrops();
+  }, []);
 
-    if (index !== null && field !== null) {
-      const updatedProducts = [...formData.products];
-      updatedProducts[index][field] = value;
-      setFormData((prev) => ({ ...prev, products: updatedProducts }));
+  const fetchCrops = async () => {
+    const res = await getCropData();
+    if (res) {
+      console.log("getCropData ", res);
+
+      setCropList(res.data);
+      setLoading(false);
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      toast.warning("Unable to fetch Data!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        theme: "light",
+        // transition: Bounce,
+      });
     }
   };
 
+  // Handle create/update
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // disable page
-
-    toast.loading("Please wait, creating new entry...", { toastId: "loading" });
-
-    try {
-      const response = await submitData(formData);
-      if (response) {
-        toast.dismiss("loading"); // remove loading toast
-        toast.success("Schedule Entry Created successfully!", {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: false,
-          theme: "light",
-          // transition: Bounce,
-        });
-        setFormData({
-          sheduleId: "",
-          date: "",
-          perLiter: "",
-          waterPerAcre: "",
-          totalAcres: "",
-          totalWater: "",
-          productAmountMg: "",
-          productAmountLtr: "",
-          useStartDay: "",
-          products: [
-            { name: "", quantity: "" },
-            { name: "", quantity: "" },
-            { name: "", quantity: "" },
-          ],
-          instructions: "",
-        });
-      }
-    } catch (err) {
-      toast.dismiss("loading");
-      toast.error("Failed to create entry!");
-    } finally {
-      setLoading(false); // enable page
+    if (editCropId) {
+      const res = await editCropData(editCropId, newCrop);
+      console.log("res edit ", res);
+    } else {
+      const res = await addCropData(newCrop);
+      console.log("res add ", res);
     }
+    fetchCrops();
+    setIsDialogOpen(false);
+    setNewCrop({ name: "", weeks: "" });
+    setEditCropId(null);
+  };
+
+  // Handle edit
+  const handleEdit = (crop) => {
+    setNewCrop({ name: crop.name, weeks: crop.weeks });
+    setEditCropId(crop._id);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    confirmAlert({
+      title: "Confirm to delete",
+      message: "Do you really want to delete this crop?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: async () => {
+            const toastId = toast.loading("Deleting crop...");
+
+            try {
+              await deleteCropById(id);
+              fetchCrops();
+
+              toast.update(toastId, {
+                render: "Crop deleted successfully!",
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+                position: "top-center",
+              });
+            } catch (error) {
+              toast.update(toastId, {
+                render: "Failed to delete crop",
+                type: "error",
+                isLoading: false,
+                autoClose: 3000,
+                position: "top-center",
+              });
+            }
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {
+            // Do nothing
+          },
+        },
+      ],
+    });
   };
 
   return (
     <>
-      {/* Top Header */}
-      <div className="flex items-center justify-center bg-slate-300 py-4 px-2">
-        <p className="text-center font-semibold text-base sm:text-lg md:text-xl">पापीता का १ एकड का प्लाट और पर्णनेत्र आयुर्वेदीक कृषी प्रणाली का साप्ताहिक शेड्यूल</p>
-      </div>
+      {loading ? (
+        <>Loading...</>
+      ) : (
+        <div className="p-6 max-w-xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">Crop List</h1>
 
-      {/* Main Form Section */}
-      <form>
-        <div className="flex justify-center items-start min-h-screen py-10 px-4 bg-blue-50">
-          <div className="w-full max-w-6xl space-y-10">
-            {/* New Schedule Entry Section */}
-            <div className="border border-gray-300 rounded-lg p-6 bg-white shadow">
-              <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">नई शेड्यूल एंट्री - New Schedule Entry</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  { name: "sheduleId", label: "Shedule ID", type: "text" },
-                  { name: "date", label: "दिनाक", type: "date" },
-                  { name: "perLiter", label: "प्रति लीटर पानी मे मिली", type: "text" },
-                  { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", type: "text" },
-                  { name: "totalAcres", label: "कुल एकड़", type: "text" },
-                  { name: "totalWater", label: "पानी कुल लीटर", type: "text" },
-                  { name: "productAmountMg", label: "उत्पादों की मात्रा (मिली/ग्राम)", type: "text" },
-                  { name: "productAmountLtr", label: "उत्पादों की मात्रा (लीटर/किग्रा)", type: "text" },
-                  { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", type: "text" },
-                ].map((field, index) => (
-                  <div key={index} className="flex flex-col md:flex-row md:items-center gap-2">
-                    <label className="w-full md:w-1/2 text-gray-700 font-medium">{field.label}:</label>
-                    <input
-                      name={field.name}
-                      type={field.type}
-                      value={formData[field.name]}
-                      onChange={handleChange}
-                      className="w-full md:w-1/2 border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                    />
+          <button
+            onClick={() => {
+              setIsDialogOpen(true);
+              setEditCropId(null);
+              setNewCrop({ name: "", weeks: "" });
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded mb-4"
+          >
+            + Add Crop
+          </button>
+
+          <ul className="space-y-3">
+            {cropList.map((crop) => (
+              <li key={crop._id} className="p-3 bg-white rounded shadow flex justify-between items-center">
+                <Link to={`/form1?name=${encodeURIComponent(crop.name)}&weeks=${crop.weeks}&id=${crop._id}`} className="flex-1 text-black no-underline hover:underline">
+                  <strong>{crop.name}</strong> – {crop.weeks} weeks
+                </Link>
+                <button onClick={() => handleEdit(crop)} className="text-blue-500 hover:text-blue-700" title="Edit">
+                  ✏️
+                </button>
+                <button onClick={() => handleDelete(crop._id)} className="text-red-500 hover:text-red-700">
+                  🗑️
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Dialog Box */}
+          {isDialogOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded shadow-xl w-80">
+                <h2 className="text-xl font-semibold mb-4">{editCropId ? "Edit Crop" : "Add New Crop"}</h2>
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <input type="text" placeholder="Crop Name" className="w-full border p-2 rounded" value={newCrop.name} onChange={(e) => setNewCrop({ ...newCrop, name: e.target.value })} required />
+                  <input
+                    type="number"
+                    placeholder="Number of Weeks"
+                    className="w-full border p-2 rounded"
+                    value={newCrop.weeks}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewCrop({
+                        ...newCrop,
+                        weeks: val === "" ? "" : Number(val),
+                      });
+                    }}
+                    required
+                  />
+
+                  <div className="flex justify-end space-x-2">
+                    <button type="button" onClick={() => setIsDialogOpen(false)} className="px-3 py-1 bg-gray-300 rounded">
+                      Cancel
+                    </button>
+                    <button type="submit" className="px-3 py-1 bg-green-600 text-white rounded">
+                      {editCropId ? "Update" : "Add"}
+                    </button>
                   </div>
-                ))}
+                </form>
               </div>
             </div>
-
-            {/* Product Details Section */}
-            <div className="border border-gray-300 rounded-lg p-6 bg-white shadow">
-              <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">उत्पाद विवरण - Product Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {formData.products.map((prod, index) => (
-                  <React.Fragment key={index}>
-                    <div className="flex flex-col md:flex-row md:items-center gap-2">
-                      <label className="w-full md:w-1/2 text-gray-700 font-medium">उत्पाद {index + 1}:</label>
-                      <input
-                        type="text"
-                        value={prod.name}
-                        onChange={(e) => handleChange(e, index, "name")}
-                        className="w-full md:w-1/2 border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                      />
-                    </div>
-                    <div className="flex flex-col md:flex-row md:items-center gap-2">
-                      <label className="w-full md:w-1/2 text-gray-700 font-medium">मात्रा:</label>
-                      <input
-                        type="number"
-                        value={prod.quantity}
-                        onChange={(e) => handleChange(e, index, "quantity")}
-                        className="w-full md:w-1/2 border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                      />
-                    </div>
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-
-            <div className="border border-gray-300 rounded-lg p-6 bg-white shadow">
-              <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">निर्देश - Instructions</h2>
-              <div className="flex flex-col md:flex-row md:items-start gap-2">
-                <label className="w-full md:w-1/2 text-gray-700 font-medium">मिश्रण और उपयोग के निर्देश:</label>
-                <textarea
-                  name="instructions"
-                  value={formData.instructions}
-                  onChange={handleChange}
-                  rows="5"
-                  placeholder="निर्देश लीखे"
-                  className="w-full md:w-1/2 border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Buttons Section */}
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <button onClick={handleSubmit} className="bg-green-600 text-white font-semibold px-6 py-2 rounded hover:bg-green-700 transition md:w-auto w-full">
-                एंट्री जोड़ें (Add Entry)
-              </button>
-              <button className="bg-yellow-600 text-white font-semibold px-6 py-2 rounded hover:bg-yellow-700 transition md:w-auto w-full">फ़ील्ड साफ़ करें (Clear Fields)</button>
-              <button className="bg-blue-600 text-white font-semibold px-6 py-2 rounded hover:bg-blue-700 transition md:w-auto w-full">कुल गणना करें (Calculate Total)</button>
-              <button className="bg-purple-600 text-white font-semibold px-6 py-2 rounded hover:bg-purple-700 transition md:w-auto w-full">नई फसल जोड़ें (Add New Crop)</button>
-            </div>
-          </div>
-        </div>
-      </form>
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="text-white text-xl font-semibold animate-pulse">कृपया प्रतीक्षा करें...</div>
+          )}
         </div>
       )}
     </>

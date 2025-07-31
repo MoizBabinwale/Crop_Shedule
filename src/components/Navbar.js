@@ -7,8 +7,8 @@ const Navbar = () => {
       <Link to="/" style={{ marginRight: "15px" }}>
         Home
       </Link>
-      <Link to="/about" style={{ marginRight: "15px" }}>
-        About
+      <Link to="/products" style={{ marginRight: "15px" }}>
+        Product List
       </Link>
       <Link to="/contact">Contact</Link>
     </nav>
