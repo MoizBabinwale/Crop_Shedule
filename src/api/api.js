@@ -82,3 +82,16 @@ export const deleteProductById = async (id) => {
   const res = await axios.delete(`${BASE_URL}/products/${id}`);
   return res.data;
 };
+
+export const getSchedulesByCropId = async (cropId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/schedule/get/${cropId}`);
+    if (res) {
+      return res.data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching schedules:", error);
+    return [];
+  }
+};

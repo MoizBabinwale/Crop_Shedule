@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { getProductList, submitData } from "../api/api";
+import { getProductList, getSchedulesByCropId, submitData } from "../api/api";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 const Form1 = () => {
   const location = useLocation();
   const [products, setProducts] = useState([]);
+  const [productLists, setProductsLists] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [weekForms, setWeekForms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,7 @@ const Form1 = () => {
   const name = queryParams.get("name");
   const weeks = queryParams.get("weeks");
   const cropId = queryParams.get("id");
+  const [productsLoaded, setProductsLoaded] = useState(false);
 
   // Fetch products once
   useEffect(() => {
@@ -41,6 +44,9 @@ const Form1 = () => {
     const data = await getProductList();
     if (data) {
       setProducts(data);
+      setProductsLists(data);
+
+      setProductsLoaded(true);
     }
   };
 
@@ -100,34 +106,39 @@ const Form1 = () => {
     e.preventDefault();
     setLoading(true);
 
-    const schedules = weekForms.map((week) => {
-      const selected = Object.entries(week.products).map(([id, data]) => {
-        const product = products.find((p) => p._id === id);
-        return {
-          name: product?.name || "Unknown",
-          quantity: `${data.ml || 0} ml/g & ${data.l || 0} l/kg`,
-        };
-      });
+    // Convert weekForms into a single schedule object with weeks array
+    const scheduleData = {
+      cropId,
+      weeks: weekForms.map((week) => {
+        const selected = Object.entries(week.products).map(([id, data]) => {
+          const product = products.find((p) => p._id === id);
+          return {
+            name: product?.name || "Unknown",
+            quantity: `${data.ml || 0} ml/g & ${data.l || 0} l/kg`,
+          };
+        });
 
-      return {
-        weekNumber: week.weekNumber,
-        date: week.date,
-        perLiter: week.perLiter,
-        waterPerAcre: week.waterPerAcre,
-        totalAcres: week.totalAcres,
-        totalWater: week.totalWater,
-        productAmountMg: week.productAmountMg,
-        productAmountLtr: week.productAmountLtr,
-        useStartDay: week.useStartDay,
-        instructions: week.instructions,
-        products: selected,
-      };
-    });
-    console.log("selected ", schedules);
-    // return;
+        return {
+          weekNumber: week.weekNumber,
+          date: week.date,
+          perLiter: week.perLiter,
+          waterPerAcre: week.waterPerAcre,
+          totalAcres: week.totalAcres,
+          totalWater: week.totalWater,
+          productAmountMg: week.productAmountMg,
+          productAmountLtr: week.productAmountLtr,
+          useStartDay: week.useStartDay,
+          instructions: week.instructions,
+          products: selected,
+        };
+      }),
+    };
+
+    console.log("Final scheduleData to send:", scheduleData);
+    // return; // Uncomment this for testing without API call
 
     try {
-      const res = await submitData(cropId, schedules);
+      const res = await submitData(cropId, scheduleData); // Send as single object
       toast.success("Schedules saved successfully.", {
         position: "top-center",
         autoClose: 3000,
@@ -136,7 +147,6 @@ const Form1 = () => {
         pauseOnHover: false,
         draggable: false,
         theme: "light",
-        // transition: Bounce,
       });
     } catch (err) {
       console.error(err);
@@ -148,7 +158,6 @@ const Form1 = () => {
         pauseOnHover: false,
         draggable: false,
         theme: "light",
-        // transition: Bounce,
       });
     } finally {
       setLoading(false);
@@ -156,6 +165,96 @@ const Form1 = () => {
   };
 
   const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const res = await getSchedulesByCropId(cropId);
+        console.log("res ", res);
+
+        if (res && res.weeks?.length > 0) {
+          const formattedWeeks = res.weeks.map((week) => {
+            const productsObject = {};
+            if (Array.isArray(week.products)) {
+              week.products.forEach((product) => {
+                const matched = products.find((p) => p.name === product.name);
+                if (matched) {
+                  const productId = matched._id;
+                  const [ml = "", l = ""] = product.quantity.split("&").map((q) => q.trim().split(" ")[0]);
+
+                  productsObject[productId] = {
+                    ml: ml || "",
+                    l: l || "",
+                  };
+                }
+              });
+            }
+
+            return {
+              ...week,
+              date: week.date ? week.date.slice(0, 10) : "",
+              products: productsObject,
+            };
+          });
+
+          setWeekForms(formattedWeeks);
+        } else {
+          // If no schedule exists, initialize empty weekForms
+          setWeekForms(
+            Array.from({ length: weeks }, (_, i) => ({
+              weekNumber: i + 1,
+              date: "",
+              perLiter: "",
+              waterPerAcre: "",
+              totalAcres: "",
+              totalWater: "",
+              productAmountMg: "",
+              productAmountLtr: "",
+              useStartDay: "",
+              instructions: "",
+              products: {},
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching schedule:", error);
+      }
+    };
+
+    if (cropId && productsLoaded) {
+      fetchSchedule();
+    }
+  }, [cropId, productsLoaded, products, weeks]);
+
+  const downloadScheduleCSV = () => {
+    if (!weekForms || weekForms.length === 0) return;
+
+    let csv = `Week,Date,Per Liter,Water per Acre,Total Acres,Total Water,Product Amount (mg),Product Amount (ltr),Use Start Day,Instructions,Products\n`;
+
+    weekForms.forEach((week) => {
+      const { weekNumber, date, perLiter, waterPerAcre, totalAcres, totalWater, productAmountMg, productAmountLtr, useStartDay, instructions, products } = week;
+
+      const productList = Object.entries(products || {})
+        .map(([id, values]) => {
+          const product = productLists.find((p) => p._id === id); // productsList is your state holding product data
+          const name = product?.name || "Unknown";
+          return `${name}: ${values.ml || 0} ml/g & ${values.l || 0} l/kg`;
+        })
+        .join(" | ");
+
+      csv += `${weekNumber},${date || ""},${perLiter},${waterPerAcre},${totalAcres},${totalWater},${productAmountMg},${productAmountLtr},${useStartDay},${instructions},"${productList}"\n`;
+    });
+
+    // Create a blob and download it
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Crop_Schedule_${cropId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <>
@@ -264,6 +363,9 @@ const Form1 = () => {
             <div className="text-center mt-6">
               <button type="submit" className="bg-green-600 text-white font-semibold px-6 py-2 rounded hover:bg-green-700 transition">
                 सभी शेड्यूल सेव करें (Save All Schedules)
+              </button>
+              <button onClick={downloadScheduleCSV} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mt-4">
+                Download Schedule CSV
               </button>
             </div>
           </div>
