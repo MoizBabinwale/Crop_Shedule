@@ -17,9 +17,9 @@ export const getCropData = async () => {
   }
 };
 
-export const submitData = async (data) => {
+export const submitData = async (cropId, shedule) => {
   try {
-    const res = await axios.post(`${BASE_URL}/schedule/create`, data);
+    const res = await axios.post(`${BASE_URL}/schedule/create/${cropId}`, shedule);
     console.log("res ", res);
 
     if (res.status === 201) {
@@ -27,7 +27,7 @@ export const submitData = async (data) => {
     }
   } catch (error) {
     console.error("Error fetching users:", error);
-    return [];
+    return error;
   }
 };
 export const editCropData = async (editCropId, newCrop) => {

@@ -36,6 +36,7 @@ const Home = () => {
         theme: "light",
         // transition: Bounce,
       });
+      setCropList([]);
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getProductList, submitData } from "../api/api";
 import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Form1 = () => {
   const location = useLocation();
@@ -16,10 +17,6 @@ const Form1 = () => {
 
   // Fetch products once
   useEffect(() => {
-    const fetchProducts = async () => {
-      const res = await getProductList();
-      setProducts(res.data || []);
-    };
     fetchProducts();
 
     // Initialize weekForms
@@ -40,21 +37,43 @@ const Form1 = () => {
     );
   }, [weeks]);
 
+  const fetchProducts = async () => {
+    const data = await getProductList();
+    if (data) {
+      setProducts(data);
+    }
+  };
+
   const handleWeekFormChange = (weekIndex, field, value) => {
     setWeekForms((prev) => prev.map((week, idx) => (idx === weekIndex ? { ...week, [field]: value } : week)));
   };
 
   const handleQuantityChange = (weekIndex, productId, field, value) => {
+    const numericValue = parseFloat(value);
+
     setWeekForms((prev) =>
       prev.map((week, idx) => {
         if (idx !== weekIndex) return week;
+
+        let ml = week.products?.[productId]?.ml || "";
+        let l = week.products?.[productId]?.l || "";
+
+        if (field === "ml") {
+          ml = value;
+          l = value ? (numericValue / 1000).toFixed(3) : "";
+        } else if (field === "l") {
+          l = value;
+          ml = value ? (numericValue * 1000).toFixed(0) : "";
+        }
+
         return {
           ...week,
           products: {
             ...week.products,
             [productId]: {
-              ...week.products[productId],
-              [field]: value,
+              ...week.products?.[productId],
+              ml,
+              l,
             },
           },
         };
@@ -104,13 +123,33 @@ const Form1 = () => {
         products: selected,
       };
     });
+    console.log("selected ", schedules);
+    // return;
 
     try {
-      const res = await submitData(cropId, { schedules });
-      alert("Schedules saved successfully.");
+      const res = await submitData(cropId, schedules);
+      toast.success("Schedules saved successfully.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        theme: "light",
+        // transition: Bounce,
+      });
     } catch (err) {
       console.error(err);
-      alert("Error saving schedules.");
+      toast.warning("Unable to Save!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        theme: "light",
+        // transition: Bounce,
+      });
     } finally {
       setLoading(false);
     }
