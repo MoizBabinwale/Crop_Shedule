@@ -28,7 +28,6 @@ export const getCropById = async (cropId) => {
 export const submitData = async (cropId, shedule) => {
   try {
     const res = await axios.post(`${BASE_URL}/schedule/create/${cropId}`, shedule);
-    console.log("res ", res);
 
     if (res.status === 201) {
       return res.data;
@@ -100,7 +99,7 @@ export const getSchedulesByCropId = async (cropId) => {
     return [];
   } catch (error) {
     console.error("Error fetching schedules:", error);
-    return [];
+    return error;
   }
 };
 

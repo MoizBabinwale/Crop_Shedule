@@ -24,18 +24,24 @@ const CoatationPage = () => {
   }, [cropId]);
 
   return (
-    <div className="p-8">
-      <div className="flex justify-end mb-4">
-        <button onClick={() => window.print()} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
-          Print Schedule
+    <div className="p-6 bg-green-50 min-h-screen">
+      {/* Print Button */}
+      <div className="flex justify-end mb-4 print:hidden">
+        <button onClick={() => window.print()} className="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-md shadow-md font-medium">
+          🖨️ Print Schedule
         </button>
       </div>
 
-      <div className="print-area">
-        <h1 className="text-2xl font-bold mb-4">फसल का नाम: {cropName}</h1>
+      {/* Header */}
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-bold text-green-800 underline decoration-orange-500 underline-offset-4">फसल का नाम: {cropName}</h1>
+      </div>
+
+      {/* Schedule Table for each Week */}
+      <div className="space-y-10 print-area">
         {weeks.map((week, index) => (
-          <table className="w-full border border-gray-300 mt-6 text-sm">
-            <thead className="bg-gray-200">
+          <table key={index} className="w-full border border-green-300 text-sm shadow-md bg-white">
+            <thead className="bg-green-200 text-green-900 text-center">
               <tr>
                 <th className="border p-2">सप्ताह</th>
                 <th className="border p-2">तारीख</th>
@@ -51,29 +57,27 @@ const CoatationPage = () => {
               </tr>
             </thead>
             <tbody>
-              {/* {weeks.map((week, index) => ( */}
-              <tr key={index} className="border-t">
-                <td className="border p-2 text-center">{week.weekNumber}</td>
-                <td className="border p-2 text-center">{week.date?.slice(0, 10)}</td>
-                <td className="border p-2 text-center">{week.perLiter}</td>
-                <td className="border p-2 text-center">{week.waterPerAcre}</td>
-                <td className="border p-2 text-center">{week.totalAcres}</td>
-                <td className="border p-2 text-center">{week.totalWater}</td>
-                <td className="border p-2 text-center">{week.productAmountMg}</td>
-                <td className="border p-2 text-center">{week.productAmountLtr}</td>
-                <td className="border p-2 text-center">{week.useStartDay}</td>
-                <td className="border p-2 text-center">{week.instructions}</td>
-                <td className="border p-2">
-                  <ul className="list-disc pl-4">
+              <tr className="border-t text-center text-green-800">
+                <td className="border p-2 font-semibold">{week.weekNumber}</td>
+                <td className="border p-2">{week.date?.slice(0, 10)}</td>
+                <td className="border p-2">{week.perLiter}</td>
+                <td className="border p-2">{week.waterPerAcre}</td>
+                <td className="border p-2">{week.totalAcres}</td>
+                <td className="border p-2">{week.totalWater}</td>
+                <td className="border p-2">{week.productAmountMg}</td>
+                <td className="border p-2">{week.productAmountLtr}</td>
+                <td className="border p-2">{week.useStartDay}</td>
+                <td className="border p-2 text-left">{week.instructions}</td>
+                <td className="border p-2 text-left">
+                  <ul className="list-disc list-inside space-y-1">
                     {(week.products || []).map((prod, i) => (
-                      <li key={i}>
-                        {prod.name}: {prod.quantity}
+                      <li key={i} className="text-sm">
+                        <span className="text-green-900 font-medium">{prod.name}</span>: <span className="text-orange-600">{prod.quantity}</span>
                       </li>
                     ))}
                   </ul>
                 </td>
               </tr>
-              {/* ))} */}
             </tbody>
           </table>
         ))}

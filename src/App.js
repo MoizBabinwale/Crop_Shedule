@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AllRoutes from "./routes/AllRoutes";
 import { ToastContainer, toast } from "react-toastify";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Navbar />
       <AllRoutes />
       <ToastContainer />
+      <Footer />
     </Router>
   );
 }
