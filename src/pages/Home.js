@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { addCropData, deleteCropById, editCropData, getCropData } from "../api/api";
+import { addCropData, createQuotation, deleteCropById, editCropData, getCropById, getCropData, getSchedulesByCropId } from "../api/api";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 
@@ -11,7 +11,8 @@ const Home = () => {
   const [newCrop, setNewCrop] = useState({ name: "", weeks: "" });
   const [editCropId, setEditCropId] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const [acreValue, setAcreValue] = useState(0);
+  const navigate = useNavigate();
   // Fetch crops
   useEffect(() => {
     setLoading(true);
@@ -105,6 +106,56 @@ const Home = () => {
     });
   };
 
+  const handleGenerateQuotation = async (cropId) => {
+    setLoading(true);
+
+    try {
+      const crop = await getCropById(cropId);
+      const schedule = await getSchedulesByCropId(cropId);
+
+      const acres = Number(acreValue); // <--- Convert here safely
+
+      const updatedWeeks = schedule.weeks.map((week) => ({
+        ...week,
+        totalWater: String(acres * Number(week.waterPerAcre || 0)),
+        totalAcres: String(acres),
+        productAmountMg: String(acres * Number(week.productAmountMg || 0)),
+        productAmountLtr: String(acres * Number(week.productAmountLtr || 0)),
+        products: (week.products || []).map((prod) => {
+          const [mlPart, lPart] = (prod.quantity || "").split("&").map((q) => q.trim());
+
+          const ml = parseFloat(mlPart?.split(" ")[0]) || 0;
+          const mlUnit = mlPart?.split(" ")[1] || "ml/g";
+
+          const l = parseFloat(lPart?.split(" ")[0]) || 0;
+          const lUnit = lPart?.split(" ")[1] || "l/kg";
+
+          return {
+            name: prod.name,
+            quantity: `${(ml * acres).toFixed(2)} ${mlUnit} & ${(l * acres).toFixed(3)} ${lUnit}`,
+          };
+        }),
+      }));
+
+      const quotationPayload = {
+        cropId,
+        cropName: crop.name,
+        acres, // key was acreValue before — use number
+        weeks: updatedWeeks,
+      };
+
+      const res = await createQuotation(quotationPayload);
+      const quotationId = res._id;
+
+      navigate(`/schedule/quotation/${quotationId}`);
+    } catch (error) {
+      console.error("Quotation creation failed:", error);
+      alert("Failed to generate quotation. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       {loading ? (
@@ -130,6 +181,12 @@ const Home = () => {
                 <Link to={`/form1?name=${encodeURIComponent(crop.name)}&weeks=${crop.weeks}&id=${crop._id}`} className="flex-1 text-black no-underline hover:underline">
                   <strong>{crop.name}</strong> – {crop.weeks} weeks
                 </Link>
+                <input type="number" placeholder="Enter acres" className="border p-1 rounded w-24 mr-2" value={acreValue || ""} onChange={(e) => setAcreValue(e.target.value)} />
+
+                <button onClick={() => handleGenerateQuotation(crop._id)} className="text-green-600 hover:text-green-800" title="Generate Quotation">
+                  🧾
+                </button>
+
                 <button onClick={() => handleEdit(crop)} className="text-blue-500 hover:text-blue-700" title="Edit">
                   ✏️
                 </button>

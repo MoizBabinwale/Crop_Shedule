@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { getProductList, getSchedulesByCropId, submitData } from "../api/api";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 import { useNavigate } from "react-router-dom";
 
@@ -142,15 +140,19 @@ const Form1 = () => {
 
     try {
       const res = await submitData(cropId, scheduleData); // Send as single object
-      toast.success("Schedules saved successfully.", {
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: false,
-        theme: "light",
-      });
+      if (res) {
+        console.log("this res ", res);
+
+        toast.success("Schedules saved successfully.", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          theme: "light",
+        });
+      }
     } catch (err) {
       console.error(err);
       toast.warning("Unable to Save!", {
@@ -372,10 +374,10 @@ const Form1 = () => {
               <button type="submit" className="bg-green-600 text-white font-semibold px-6 py-2 rounded hover:bg-green-700 transition">
                 सभी शेड्यूल सेव करें (Save All Schedules)
               </button>
-              <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
-                शेड्यूल पहा (View Schedule)
-              </button>
             </div>
+            <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+              शेड्यूल पहा (View Schedule)
+            </button>
           </div>
         </div>
       </form>

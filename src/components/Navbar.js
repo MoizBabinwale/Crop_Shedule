@@ -10,6 +10,9 @@ const Navbar = () => {
       <Link to="/products" style={{ marginRight: "15px" }}>
         Product List
       </Link>
+      <Link to="/quotation/master" style={{ marginRight: "15px" }}>
+        Generated Cotation
+      </Link>
       <Link to="/contact">Contact</Link>
     </nav>
   );
