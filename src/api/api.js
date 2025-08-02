@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api"; // Replace with your API base URL
-// const BASE_URL = "https://crop-shedule-server.vercel.app/api"; // Replace with your API base URL
+// const BASE_URL = "http://localhost:5000/api"; // Replace with your API base URL
+const BASE_URL = "https://crop-shedule-server.vercel.app/api"; // Replace with your API base URL
 
 export const getCropData = async () => {
   try {
