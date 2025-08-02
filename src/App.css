@@ -36,3 +36,25 @@
     transform: rotate(360deg);
   }
 }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Optional: Hide scrollbars */
+  @page {
+    margin: 20mm;
+  }
+}

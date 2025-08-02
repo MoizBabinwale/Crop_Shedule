@@ -20,7 +20,7 @@ const Home = () => {
 
   const fetchCrops = async () => {
     const res = await getCropData();
-    if (res) {
+    if (res.data) {
       console.log("getCropData ", res);
 
       setCropList(res.data);

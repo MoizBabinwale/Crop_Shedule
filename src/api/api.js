@@ -1,12 +1,10 @@
 import axios from "axios";
 
-// const BASE_URL = "http://localhost:5000/api"; // Replace with your API base URL
-const BASE_URL = "https://crop-shedule-server.vercel.app/api"; // Replace with your API base URL
+const BASE_URL = "http://localhost:5000/api"; // Replace with your API base URL
+// const BASE_URL = "https://crop-shedule-server.vercel.app/api"; // Replace with your API base URL
 
 export const getCropData = async () => {
   try {
-    console.log("creop ftched");
-
     const response = await axios.get(`${BASE_URL}/crop`);
     if (response) {
       return response;
@@ -14,6 +12,16 @@ export const getCropData = async () => {
   } catch (error) {
     console.error("Error fetching users:", error);
     return [];
+  }
+};
+// Function to get crop by ID
+export const getCropById = async (cropId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/crop/${cropId}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching crop by ID:", err);
+    throw err;
   }
 };
 

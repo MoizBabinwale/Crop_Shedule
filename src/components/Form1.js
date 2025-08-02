@@ -4,6 +4,9 @@ import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+
+import { useNavigate } from "react-router-dom";
+
 const Form1 = () => {
   const location = useLocation();
   const [products, setProducts] = useState([]);
@@ -256,6 +259,11 @@ const Form1 = () => {
     document.body.removeChild(link);
   };
 
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/schedule/${cropId}`);
+  };
   return (
     <>
       <div className="flex flex-col items-center justify-center bg-slate-300 py-4 px-2">
@@ -364,8 +372,8 @@ const Form1 = () => {
               <button type="submit" className="bg-green-600 text-white font-semibold px-6 py-2 rounded hover:bg-green-700 transition">
                 सभी शेड्यूल सेव करें (Save All Schedules)
               </button>
-              <button onClick={downloadScheduleCSV} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mt-4">
-                Download Schedule CSV
+              <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+                शेड्यूल पहा (View Schedule)
               </button>
             </div>
           </div>
