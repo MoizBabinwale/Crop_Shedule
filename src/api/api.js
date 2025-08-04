@@ -103,6 +103,7 @@ export const getSchedulesByCropId = async (cropId) => {
   }
 };
 
+// QUOTATION APIS
 export const createQuotation = async (quotationData) => {
   try {
     const response = await axios.post(`${BASE_URL}/crop/quotations`, quotationData);
@@ -113,8 +114,6 @@ export const createQuotation = async (quotationData) => {
   }
 };
 
-// const BASE_URL = "http://localhost:5000"; // Change if your server runs on a different port
-
 export const getAllQuotations = async () => {
   const res = await fetch(`${BASE_URL}/crop/quotations`);
   if (!res.ok) throw new Error("Failed to fetch quotations");
@@ -122,20 +121,10 @@ export const getAllQuotations = async () => {
 };
 
 export const getQuotationById = async (id) => {
-  const res = await fetch(`${BASE_URL}/crop/quotations/${id}`);
+  const res = await fetch(`${BASE_URL}/quotations/${id}`);
   if (!res.ok) throw new Error("Failed to fetch quotation");
   return res.json();
 };
-
-// export const createQuotation = async (data) => {
-//   const res = await fetch(`${BASE_URL}/crop/quotations`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify(data),
-//   });
-//   if (!res.ok) throw new Error("Failed to create quotation");
-//   return res.json();
-// };
 
 export const updateQuotation = async (id, data) => {
   const res = await fetch(`${BASE_URL}/crop/quotations/${id}`, {
@@ -153,4 +142,94 @@ export const deleteQuotation = async (id) => {
   });
   if (!res.ok) throw new Error("Failed to delete quotation");
   return res.json();
+};
+export const getScheduleBillByScheduleId = async (scheduleId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/schedulebill/${scheduleId}`);
+    console.log("bills ", res);
+
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) return null;
+    console.error("Error fetching schedule bill:", error);
+    throw error;
+  }
+};
+
+export const createScheduleBill = async (payload) => {
+  try {
+    const res = await axios.post(`${BASE_URL}/schedulebill`, payload);
+    return res;
+  } catch (error) {
+    console.error("Error creating schedule bill:", error);
+    throw error;
+  }
+};
+export const createQuotationBill = async (quotationId, totalAcres) => {
+  try {
+    // Step 1: Fetch Quotation (you might already have it in frontend, or fetch if needed)
+    const quotationRes = await axios.get(`${BASE_URL}/quotations/${quotationId}`);
+    const quotation = quotationRes.data;
+
+    // Step 2: Get 1-acre schedule
+    const scheduleData = await getSchedulesByCropId(quotation.cropId);
+    console.log("scheduleData ", scheduleData);
+
+    // Step 3: Multiply schedule data for total acres
+    const generateBillData = (scheduleData, acres) => {
+      return scheduleData.map((item) => {
+        const totalML = Number(item.totalML || 0) * acres;
+        const totalCost = Number(item.totalCost || 0) * acres;
+        return {
+          productName: item.productName,
+          times: item.times,
+          totalML,
+          ratePerML: item.ratePerML,
+          totalCost,
+        };
+      });
+    };
+
+    const multipliedSchedule = generateBillData(scheduleData, totalAcres);
+
+    // Step 4: Calculate total cost
+    const totalCost = multipliedSchedule.reduce((acc, cur) => acc + cur.totalCost, 0);
+
+    // Step 5: Prepare bill object
+    const billPayload = {
+      quotationId,
+      cropId: quotation.cropId,
+      totalAcres,
+      totalPlants: quotation.totalPlants || 1000,
+      farmerInfo: quotation.farmerInfo,
+      schedule: multipliedSchedule,
+      totalCost,
+    };
+
+    // Step 6: Save to MongoDB
+    const saveRes = await axios.post(`${BASE_URL}/quotationbills/create`, billPayload);
+    return saveRes.data._id;
+  } catch (error) {
+    console.error("Error generating quotation bill:", error);
+    throw error;
+  }
+};
+
+export const getQuotationBillById = async (billId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/quotationbills/${billId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error getting bill:", error);
+    throw error;
+  }
+};
+export const getScheduleById = async (scheduleId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/schedule/${scheduleId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error getting schedule:", error);
+    throw error;
+  }
 };

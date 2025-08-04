@@ -20,6 +20,7 @@ const Form1 = () => {
   const weeks = queryParams.get("weeks");
   const cropId = queryParams.get("id");
   const [productsLoaded, setProductsLoaded] = useState(false);
+  const [scheduleId, setScheduleId] = useState("");
 
   // Fetch products once
   useEffect(() => {
@@ -152,6 +153,8 @@ const Form1 = () => {
           theme: "light",
         });
       }
+
+      setScheduleId(res._id);
     } catch (err) {
       console.error(err);
       toast.warning("Unable to Save!", {
@@ -199,8 +202,10 @@ const Form1 = () => {
               products: productsObject,
             };
           });
+          console.log("res", res);
 
           setWeekForms(formattedWeeks);
+          setScheduleId(res._id);
         } else {
           // If no schedule exists, initialize empty weekForms
           setWeekForms(
@@ -229,40 +234,14 @@ const Form1 = () => {
     }
   }, [cropId, productsLoaded, products, weeks]);
 
-  const downloadScheduleCSV = () => {
-    if (!weekForms || weekForms.length === 0) return;
-
-    let csv = `Week,Date,Per Liter,Water per Acre,Total Acres,Total Water,Product Amount (mg),Product Amount (ltr),Use Start Day,Instructions,Products\n`;
-
-    weekForms.forEach((week) => {
-      const { weekNumber, date, perLiter, waterPerAcre, totalAcres, totalWater, productAmountMg, productAmountLtr, useStartDay, instructions, products } = week;
-
-      const productList = Object.entries(products || {})
-        .map(([id, values]) => {
-          const product = productLists.find((p) => p._id === id); // productsList is your state holding product data
-          const name = product?.name || "Unknown";
-          return `${name}: ${values.ml || 0} ml/g & ${values.l || 0} l/kg`;
-        })
-        .join(" | ");
-
-      csv += `${weekNumber},${date || ""},${perLiter},${waterPerAcre},${totalAcres},${totalWater},${productAmountMg},${productAmountLtr},${useStartDay},${instructions},"${productList}"\n`;
-    });
-
-    // Create a blob and download it
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `Crop_Schedule_${cropId}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const navigate = useNavigate();
 
   const handleClick = () => {
     navigate(`/schedule/${cropId}`);
+  };
+
+  const generateScheduleBill = () => {
+    navigate(`/schedulebill/${scheduleId}`);
   };
   return (
     <>
@@ -285,7 +264,7 @@ const Form1 = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form>
             <div className="flex justify-center items-start min-h-screen py-10 px-4 bg-green-50 bg-cover bg-fixed" style={{ backgroundImage: `url(${bgImage})` }}>
               <div className="w-full max-w-6xl space-y-10">
                 {weekForms.map((week, index) => (
@@ -392,8 +371,11 @@ const Form1 = () => {
                 ))}
 
                 <div className="text-center mt-6 flex flex-col sm:flex-row justify-center gap-4">
-                  <button type="submit" className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
+                  <button onClick={() => handleSubmit()} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
                     ✅ सभी शेड्यूल सेव करें (Save All Schedules)
+                  </button>
+                  <button onClick={() => generateScheduleBill()} disabled={!scheduleId} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
+                    ✅ शेड्युल बिल पाहा
                   </button>
                   <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                     👀 शेड्यूल पहा (View Schedule)

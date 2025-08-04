@@ -52,8 +52,8 @@ const CoatationPage = () => {
                 <th className="border p-2">उत्पादों की मात्रा (मिली/ग्राम)</th>
                 <th className="border p-2">उत्पादों की मात्रा (लीटर/किग्रा)</th>
                 <th className="border p-2">आरंभ दिन से उपयोग करने का दिन</th>
-                <th className="border p-2">निर्देश</th>
                 <th className="border p-2">उत्पाद</th>
+                <th className="border p-2">निर्देश</th>
               </tr>
             </thead>
             <tbody>
@@ -66,8 +66,7 @@ const CoatationPage = () => {
                 <td className="border p-2">{week.totalWater}</td>
                 <td className="border p-2">{week.productAmountMg}</td>
                 <td className="border p-2">{week.productAmountLtr}</td>
-                <td className="border p-2">{week.useStartDay}</td>
-                <td className="border p-2 text-left">{week.instructions}</td>
+                <td className="border p-2">{week.useStartDay} वा दिन</td>
                 <td className="border p-2 text-left">
                   <ul className="list-disc list-inside space-y-1">
                     {(week.products || []).map((prod, i) => (
@@ -77,6 +76,7 @@ const CoatationPage = () => {
                     ))}
                   </ul>
                 </td>
+                <td className="border p-2 text-left">{week.instructions}</td>
               </tr>
             </tbody>
           </table>

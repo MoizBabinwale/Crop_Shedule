@@ -8,6 +8,9 @@ import ProductList from "../pages/ProductList.js";
 import CoatationPage from "../pages/CoatationPage.js";
 import QuatationGen from "../pages/QuatationGen.js";
 import QuotationMaster from "../pages/QuotationMaster.jsx";
+import QuotationBill from "../pages/QuotationBill.js";
+import ScheduleBill from "../pages/ScheduleBill.js";
+import ScheduleBillView from "../components/ScheduleBilView.js";
 
 const AllRoutes = () => {
   return (
@@ -21,6 +24,9 @@ const AllRoutes = () => {
       <Route path="/schedule/quotation/:quatationId" element={<QuatationGen />} />
 
       <Route path="/quotation/master" element={<QuotationMaster />} />
+      <Route path="/bill/:billId" element={<QuotationBill />} />
+      <Route path="/scheduleBill/:scheduleId" element={<ScheduleBill />} />
+      <Route path="/scheduleBill/view/:scheduleId" element={<ScheduleBillView />} />
       {/* <Route path="/quotation/edit/:id" element={<EditQuotationPage />} />
       <Route path="/quotation/add" element={<AddQuotationPage />} />
       <Route path="/schedule/quatation/:quatationId" element={<CoatationPage />} /> */}

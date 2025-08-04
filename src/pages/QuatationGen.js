@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getQuotationById } from "../api/api";
+import { useNavigate, useParams } from "react-router-dom";
+import { createQuotationBill, getQuotationById } from "../api/api";
+import { toast } from "react-toastify";
 
 const QuatationGen = () => {
   const { quatationId } = useParams();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchQuotation = async () => {
       try {
@@ -25,11 +26,24 @@ const QuatationGen = () => {
   if (loading) return <p className="p-6 text-lg">⏳ Quotation तैयार किया जा रहा है...</p>;
   if (!quotation) return <p className="p-6 text-red-600">❌ Quotation नहीं मिला</p>;
 
+  const handleGenerateBill = async (quotation) => {
+    try {
+      const res = await createQuotationBill(quotation._id, quotation.totalAcres);
+      navigate(`/bill/${res}`);
+    } catch (error) {
+      toast.error("बिल तयार करण्यात अडचण आली");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="p-8 print:p-4 print:text-xs">
       <div className="flex justify-end mb-4 print:hidden">
         <button onClick={() => window.print()} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
           Print Quotation
+        </button>
+        <button onClick={() => handleGenerateBill(quotation)} className="bg-yellow-400 text-black px-3 py-1 rounded hover:bg-yellow-500">
+          📄 Generate Bill
         </button>
       </div>
 
@@ -71,9 +85,9 @@ const QuatationGen = () => {
                 <th className="border px-2 py-1">पानी कुल</th>
                 <th className="border px-2 py-1">मात्रा (मिली/ग्राम)</th>
                 <th className="border px-2 py-1">मात्रा (लीटर/किग्रा)</th>
-                <th className="border px-2 py-1">आरंभ दिन</th>
-                <th className="border px-2 py-1">निर्देश</th>
+                <th className="border px-2 py-1">आरंभ दिन से उपयोग करने का दिन</th>
                 <th className="border px-2 py-1">उत्पाद</th>
+                <th className="border px-2 py-1">निर्देश</th>
               </tr>
             </thead>
             <tbody>
@@ -86,8 +100,7 @@ const QuatationGen = () => {
                 <td className="border px-2 py-1 text-center">{week.totalWater}</td>
                 <td className="border px-2 py-1 text-center">{week.productAmountMg}</td>
                 <td className="border px-2 py-1 text-center">{week.productAmountLtr}</td>
-                <td className="border px-2 py-1 text-center">{week.useStartDay}</td>
-                <td className="border px-2 py-1 text-center">{week.instructions}</td>
+                <td className="border px-2 py-1 text-center">{week.useStartDay} वा दिन</td>
                 <td className="border px-2 py-1">
                   <ul className="list-disc pl-4">
                     {(week.products || []).map((prod, i) => (
@@ -97,6 +110,7 @@ const QuatationGen = () => {
                     ))}
                   </ul>
                 </td>
+                <td className="border px-2 py-1 text-center">{week.instructions}</td>
               </tr>
             </tbody>
           </table>

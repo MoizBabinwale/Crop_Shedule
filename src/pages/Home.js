@@ -36,8 +36,23 @@ const Home = () => {
   const fetchCrops = async () => {
     const res = await getCropData();
     if (res.data) {
+      const cropsWithBillStatus = await Promise.all(
+        res.data.map(async (crop) => {
+          try {
+            const schedule = await getSchedulesByCropId(crop._id); // Assuming one schedule per crop
+            if (schedule && schedule.scheduleBillId) {
+              return { ...crop, scheduleId: schedule._id, hasBill: true };
+            }
+          } catch (err) {
+            console.error("Error fetching schedule for crop", crop._id, err);
+          }
+          return { ...crop, hasBill: false };
+        })
+      );
+      console.log("cropsWithBillStatus ", cropsWithBillStatus);
+
+      setCropList(cropsWithBillStatus);
       setLoading(false);
-      setCropList(res.data);
     } else {
       toast.warning("Unable to fetch Data!", {
         position: "top-center",
@@ -233,6 +248,17 @@ const Home = () => {
                     <FaFileInvoice />
                   </button>
 
+                  <td>
+                    {crop.hasBill && crop.scheduleId && (
+                      <button
+                        onClick={() => navigate(`/schedulebill/view/${crop.scheduleId}`)}
+                        className="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded-full shadow"
+                        title="View Schedule Bill"
+                      >
+                        🧾 View Bill
+                      </button>
+                    )}
+                  </td>
                   <button onClick={() => handleEdit(crop)} className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 p-2 rounded-full shadow" title="Edit Crop">
                     <FaEdit />
                   </button>
