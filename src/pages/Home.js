@@ -8,16 +8,21 @@ import Loading from "../components/Loading";
 import { FaFileInvoice, FaEdit, FaTrash } from "react-icons/fa";
 import bannerImg from "../assets/banner.jpg";
 import leaf from "../assets/Greenleaf.png";
+import { useRef } from "react";
+import { motion } from "framer-motion";
 
 const Home = () => {
   const [cropList, setCropList] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newCrop, setNewCrop] = useState({ name: "", weeks: "" });
+  const [newCrop, setNewCrop] = useState({ name: "", description: "", weeks: "" });
   const [editCropId, setEditCropId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [acreValue, setAcreValue] = useState(0);
+  // const [acreValue, setAcreValue] = useState(0);
+  const [acreValues, setAcreValues] = useState({});
+
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [selectedScheduleId, setSelectedScheduleId] = useState(false);
   const [selectedCropId, setSelectedCropId] = useState("");
   const [farmerInfo, setFarmerInfo] = useState({
     name: "",
@@ -26,6 +31,8 @@ const Home = () => {
     district: "",
     state: "",
   });
+
+  const modalRef = useRef(null);
 
   // Fetch crops
   useEffect(() => {
@@ -72,6 +79,20 @@ const Home = () => {
   // Handle create/update
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (newCrop.weeks <= 0) {
+      toast.warning("आठवड्यांची संख्या 0 किंवा त्यापेक्षा कमी असू शकत नाही!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        theme: "light",
+        // transition: Bounce,
+      });
+      return;
+    }
+
     if (editCropId) {
       const res = await editCropData(editCropId, newCrop);
     } else {
@@ -79,13 +100,13 @@ const Home = () => {
     }
     fetchCrops();
     setIsDialogOpen(false);
-    setNewCrop({ name: "", weeks: "" });
+    setNewCrop({ name: "", weeks: "", description: "" });
     setEditCropId(null);
   };
 
   // Handle edit
   const handleEdit = (crop) => {
-    setNewCrop({ name: crop.name, weeks: crop.weeks });
+    setNewCrop({ name: crop.name, weeks: crop.weeks, description: crop.description });
     setEditCropId(crop._id);
     setIsDialogOpen(true);
   };
@@ -138,6 +159,7 @@ const Home = () => {
     try {
       const crop = await getCropById(cropId);
       const schedule = await getSchedulesByCropId(cropId);
+      const acreValue = acreValues.cropId;
       const acres = Number(acreValue);
 
       const updatedWeeks = schedule.weeks.map((week) => ({
@@ -155,6 +177,7 @@ const Home = () => {
           return {
             name: prod.name,
             quantity: `${(ml * acres).toFixed(2)} ${mlUnit} & ${(l * acres).toFixed(3)} ${lUnit}`,
+            perLitreMix: prod.perLitreMix,
           };
         }),
       }));
@@ -165,12 +188,13 @@ const Home = () => {
         acres,
         weeks: updatedWeeks,
         farmerInfo: farmerData, // 👈 save farmer info here
+        scheduleId: selectedScheduleId,
       };
 
       const res = await createQuotation(quotationPayload);
       toast.success("Quotation created successfully");
       setLoading(false);
-      setAcreValue("");
+      setAcreValues("");
       setFarmerInfo({
         name: "",
         place: "",
@@ -221,7 +245,7 @@ const Home = () => {
             onClick={() => {
               setIsDialogOpen(true);
               setEditCropId(null);
-              setNewCrop({ name: "", weeks: "" });
+              setNewCrop({ name: "", weeks: "", description: "" });
             }}
             className="bg-orange-500 text-white px-4 py-2 rounded mb-6 hover:bg-orange-600"
           >
@@ -229,18 +253,56 @@ const Home = () => {
           </button>
 
           <ul className="space-y-3">
-            {cropList.map((crop) => (
-              <li key={crop._id} className="p-3 bg-white rounded shadow flex justify-between items-center">
-                <Link to={`/form1?name=${encodeURIComponent(crop.name)}&weeks=${crop.weeks}&id=${crop._id}`} className="flex-1 text-green-900 font-semibold hover:underline">
-                  {crop.name} – {crop.weeks} weeks
-                </Link>
-                <input type="number" placeholder="Acres" className="border p-1 rounded w-24 mr-2" value={acreValue || ""} onChange={(e) => setAcreValue(e.target.value)} />
+            {cropList.map((crop, index) => (
+              <motion.li
+                key={crop._id}
+                className="p-3 bg-white rounded shadow flex justify-between items-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <div className="flex-1">
+                  <Link to={`/form1?name=${encodeURIComponent(crop.name)}&weeks=${crop.weeks}&id=${crop._id}`} className="text-green-900 font-semibold hover:underline">
+                    {crop.name} – {crop.weeks} weeks
+                  </Link>
+                  {crop.description && <p className="text-xs text-gray-600 mt-1">{crop.description}</p>}
+                </div>
+
+                <input
+                  type="number"
+                  placeholder="Acres"
+                  className="border p-1 rounded w-24 mr-2"
+                  value={acreValues[crop._id] || ""}
+                  onChange={(e) =>
+                    setAcreValues((prev) => ({
+                      ...prev,
+                      [crop._id]: e.target.value,
+                    }))
+                  }
+                />
 
                 <div className="flex space-x-2">
                   <button
                     onClick={() => {
+                      const acres = parseFloat(acreValues[crop._id]);
+
+                      if (!acres || acres <= 1) {
+                        toast.warning("कृपया 1 पेक्षा जास्त एकर प्रविष्ट करा!", {
+                          position: "top-center",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: false,
+                          draggable: false,
+                          theme: "light",
+                        });
+                        return;
+                      }
+
+                      // If acres is valid, open modal
                       setShowModal(true);
                       setSelectedCropId(crop._id);
+                      setSelectedScheduleId(crop.scheduleId);
                     }}
                     className="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded-full shadow"
                     title="Generate Quotation"
@@ -248,17 +310,16 @@ const Home = () => {
                     <FaFileInvoice />
                   </button>
 
-                  <td>
-                    {crop.hasBill && crop.scheduleId && (
-                      <button
-                        onClick={() => navigate(`/schedulebill/view/${crop.scheduleId}`)}
-                        className="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded-full shadow"
-                        title="View Schedule Bill"
-                      >
-                        🧾 View Bill
-                      </button>
-                    )}
-                  </td>
+                  {crop.hasBill && crop.scheduleId && (
+                    <button
+                      onClick={() => navigate(`/schedulebill/view/${crop.scheduleId}`)}
+                      className="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded-full shadow"
+                      title="View Schedule Bill"
+                    >
+                      🧾 View Bill
+                    </button>
+                  )}
+
                   <button onClick={() => handleEdit(crop)} className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 p-2 rounded-full shadow" title="Edit Crop">
                     <FaEdit />
                   </button>
@@ -267,13 +328,24 @@ const Home = () => {
                     <FaTrash />
                   </button>
                 </div>
-              </li>
+              </motion.li>
             ))}
           </ul>
 
           {isDialogOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-              <div className="bg-white border border-green-600 p-6 rounded-2xl shadow-2xl w-[90%] max-w-md relative">
+            <div
+              className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50"
+              onClick={(e) => {
+                if (modalRef.current && !modalRef.current.contains(e.target)) {
+                  setIsDialogOpen(false); // Close dialog on outside click
+                }
+              }}
+            >
+              <div
+                ref={modalRef}
+                className="bg-white border border-green-600 p-6 rounded-2xl shadow-2xl w-[90%] max-w-md relative"
+                onClick={(e) => e.stopPropagation()} // Prevent click inside box from bubbling
+              >
                 {/* Optional Leaf Icon or Logo */}
                 <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-green-100 p-2 rounded-full shadow-md">
                   <img src={leaf} alt="Leaf" className="w-8 h-8" />
@@ -289,6 +361,13 @@ const Home = () => {
                     value={newCrop.name}
                     onChange={(e) => setNewCrop({ ...newCrop, name: e.target.value })}
                     required
+                  />
+                  <input
+                    type="text"
+                    placeholder="पिकाचे वर्णन (Crop Description)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.description}
+                    onChange={(e) => setNewCrop({ ...newCrop, description: e.target.value })}
                   />
 
                   <input

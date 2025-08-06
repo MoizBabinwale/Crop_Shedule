@@ -1,99 +1,131 @@
 import React, { useEffect, useState } from "react";
-
-import { useParams } from "react-router-dom";
 import { getQuotationBillById } from "../api/api";
+import { useParams } from "react-router-dom";
 
-const QuotationBill = ({ bill }) => {
-  const { billId } = useParams();
-
+const QuotationBill = () => {
+  const { quotationId } = useParams();
   const [billData, setBillData] = useState(null);
 
   useEffect(() => {
     const fetchBill = async () => {
-      try {
-        const data = await getQuotationBillById(billId);
-        if (data) {
-          setBillData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch bill");
-      }
+      const data = await getQuotationBillById(quotationId);
+      console.log("data ", data);
+
+      setBillData(data);
     };
 
-    fetchBill();
-  }, [billId]);
+    if (quotationId) fetchBill();
+  }, [quotationId]);
 
-  if (!billId) return <div>Bill not available</div>;
+  // SummaryField Component
+  const SummaryField = ({ label, value }) => (
+    <div className="bg-green-100 p-2 rounded shadow text-sm">
+      <p className="text-green-700 font-medium">{label}</p>
+      <p className="text-green-900 font-semibold">{value}</p>
+    </div>
+  );
+
+  // GroupedCost Component
+  const GroupedCost = ({ title, data = {} }) => (
+    <div className="mt-4">
+      <h3 className="text-green-600 font-semibold">{title}</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1 text-sm">
+        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹ ${data.perHectare || 0}`} />
+        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹ ${data.perAcre || 0}`} />
+        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹ ${data.perBigha || 0}`} />
+        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹ ${data.perGuntha || 0}`} />
+        <SummaryField label="एकूण ₹" value={`₹ ${data.totalRs || 0}`} />
+      </div>
+    </div>
+  );
+
+  if (!billData) return <div>Loading...</div>;
+
+  const { cropName, billDate, farmerInfo, items = [], additionalInfo = {} } = billData;
 
   return (
-    <div className="bg-green-50 p-4 sm:p-8 text-gray-800 font-[sans-serif]">
-      <div className="max-w-7xl mx-auto border-2 border-green-600 rounded-lg shadow-lg p-6 bg-white">
-        <h1 className="text-2xl sm:text-3xl font-bold text-center text-green-700 mb-4">
-          {billData.cropName} चे {billData.totalAcres} एकर शेतीसाठी कोटेशन बिल
-        </h1>
+    <div className="p-4 max-w-6xl mx-auto bg-white border border-green-300 rounded shadow text-sm">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold text-green-700">💼 कोटेशन बिल - Quotation Bill</h1>
+        <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded shadow print:hidden">
+          🖨️ Print
+        </button>
+      </div>
 
-        <div className="border-t border-b border-green-500 py-3 text-sm sm:text-base">
-          <p>
-            <strong>शेतकरी नाव:</strong> श्री {billData.farmerInfo.name}
-          </p>
-          <p>
-            <strong>पत्ता:</strong> {billData.farmerInfo.place}, {billData.farmerInfo.tahsil}, {billData.farmerInfo.district}, {billData.farmerInfo.state}
-          </p>
-          <p>
-            <strong>एकूण क्षेत्रफळ:</strong> {billData.totalAcres} एकर ({billData.totalPlants} रोपे)
-          </p>
+      <div className="border-t border-b border-green-500 py-3 text-sm">
+        {/* Top row with date on the right */}
+        <div className="flex justify-between items-start mb-3">
+          <div></div> {/* empty left space */}
+          <p className="font-bold text-right">दिनांक: {new Date(billDate).toLocaleDateString("en-GB")}</p>
         </div>
 
-        <div className="overflow-x-auto mt-6">
-          <table className="table-auto w-full border-collapse border border-green-600 text-sm sm:text-base">
-            <thead>
-              <tr className="bg-green-100 text-green-800">
-                <th className="border border-green-500 px-2 py-1">#</th>
-                <th className="border border-green-500 px-2 py-1">Product</th>
-                <th className="border border-green-500 px-2 py-1">Times</th>
-                <th className="border border-green-500 px-2 py-1">ML</th>
-                <th className="border border-green-500 px-2 py-1">LTR/KG</th>
-                <th className="border border-green-500 px-2 py-1">Rate (Rs/ml)</th>
-                <th className="border border-green-500 px-2 py-1">Total Amt (Rs)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {billData.productList.map((product, index) => (
-                <tr key={index} className="hover:bg-green-50">
-                  <td className="border border-green-400 px-2 py-1 text-center">{index + 1}</td>
-                  <td className="border border-green-400 px-2 py-1">{product.name}</td>
-                  <td className="border border-green-400 px-2 py-1 text-center">{product.times}</td>
-                  <td className="border border-green-400 px-2 py-1 text-center">{product.totalMl}</td>
-                  <td className="border border-green-400 px-2 py-1 text-center">{product.ltrsPerKg}</td>
-                  <td className="border border-green-400 px-2 py-1 text-center">{product.rate}</td>
-                  <td className="border border-green-400 px-2 py-1 text-right">{product.totalAmount}</td>
-                </tr>
-              ))}
-              <tr className="bg-green-100 font-semibold text-green-900">
-                <td colSpan="6" className="text-right px-2 py-1 border border-green-600">
-                  Total Cost
-                </td>
-                <td className="text-right px-2 py-1 border border-green-600">{billData.totalCost} ₹</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="text-sm sm:text-base mt-4">
-          <p className="mt-2">
-            <strong>Per Plant Cost:</strong> ₹{billData.perPlantCost}
+        {/* Farmer info */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          <p>
+            <span className="font-medium">शेतकरी नाव (Name):</span> श्री {farmerInfo?.name}
           </p>
-          <p className="mt-1">
-            <strong>Per Kg Production Cost:</strong> ₹{billData.perKgCost}
+          <p>
+            <span className="font-medium">गाव (Place):</span> {farmerInfo?.place}
           </p>
-        </div>
-
-        <div className="mt-6 text-center text-green-700 text-sm sm:text-base font-medium">
-          <p>PAAS - Parnanetra Ayurvedic Agro System</p>
-          <p>तांत्रिक सहाय्य: शीतांशु जोशी</p>
-          <p>मोबाईल: 9960186016</p>
+          <p>
+            <span className="font-medium">तालुका (Tahsil):</span> {farmerInfo?.tahsil}
+          </p>
+          <p>
+            <span className="font-medium">जिल्हा (District):</span> {farmerInfo?.district}
+          </p>
+          <p>
+            <span className="font-medium">राज्य (State):</span> {farmerInfo?.state}
+          </p>
+          <p>
+            <strong>एकूण क्षेत्रफळ:</strong> {billData.acres} एकर ({additionalInfo?.totalPlants} रोपे)
+          </p>
         </div>
       </div>
+
+      {/* Product Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full table-auto border border-green-500 text-center">
+          <thead className="bg-green-100">
+            <tr>
+              <th className="border px-2 py-1">साहित्य</th>
+              <th className="border px-2 py-1">वेळा</th>
+              <th className="border px-2 py-1">कुल Ml</th>
+              <th className="border px-2 py-1">Ltr/Kg</th>
+              <th className="border px-2 py-1">Rate</th>
+              <th className="border px-2 py-1">Total Amt</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => (
+              <tr key={index}>
+                <td className="border px-2 py-1">{item.name}</td>
+                <td className="border px-2 py-1">{item.times}</td>
+                <td className="border px-2 py-1">{item.totalMl}</td>
+                <td className="border px-2 py-1">{item.ltrKg}</td>
+                <td className="border px-2 py-1">{item.rate ? `₹ ${item.rate}` : ""}</td>
+                <td className="border px-2 py-1">{item.totalAmt ? `₹ ${item.totalAmt}` : ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Summary Section */}
+      <h2 className="mt-6 mb-2 text-green-700 font-semibold text-base">💰 खर्चाचा सारांश - Cost Summary</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-green-800">
+        <SummaryField label="Total Plants (7 Feet x5 Feet)" value={additionalInfo.totalPlants || 0} />
+        <SummaryField label="Total Acres" value={additionalInfo.totalAcres || 0} />
+        <SummaryField label="Total Guntha" value={additionalInfo.totalGuntha || 0} />
+        <SummaryField label="Total Cost" value={`₹ ${additionalInfo.totalCost || 0}`} />
+        <SummaryField label="Per Plant Cost" value={`₹ ${additionalInfo.perPlantCost || 0}`} />
+      </div>
+
+      {/* Grouped Cost Sections */}
+      <GroupedCost title="🌿 पर्णनेत्र उत्पादों की लागत" data={additionalInfo.leafProductCost} />
+      <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={additionalInfo.bioControlCost} />
+      <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={additionalInfo.fieldInputPrepCost} />
+      <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={additionalInfo.smokeCost} />
     </div>
   );
 };

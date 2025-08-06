@@ -1,57 +1,32 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getScheduleBillByScheduleId, createScheduleBill, getProductList, getScheduleById } from "../api/api"; // adjust your import path
 import { toast } from "react-toastify";
+import Loading from "../components/Loading";
 
 const ScheduleBill = () => {
   const { scheduleId } = useParams();
   const [billItems, setBillItems] = useState([]);
+  const [billId, setBillId] = useState("");
   const [products, setProducts] = useState([]);
   const [productList, setProductList] = useState([]);
   const [productsLoaded, setProductsLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState({});
   // Summary input values
   // Basic fields
-  const [totalPlants, setTotalPlants] = useState(0);
-  const [totalAcres, setTotalAcres] = useState(0);
-  const [totalGuntha, setTotalGuntha] = useState(0);
-  const [totalCost, setTotalCost] = useState(0);
-  const [perPlantCost, setPerPlantCost] = useState(0);
-
-  // Cost Groups
-  const [leafProductCost, setLeafProductCost] = useState({
-    totalRs: 0,
-    perHectare: 0,
-    perAcre: 0,
-    perBigha: 0,
-    perGuntha: 0,
+  const [costDetails, setCostDetails] = useState({
+    totalPlants: 0,
+    totalAcres: 0,
+    totalGuntha: 0,
+    totalCost: 0,
+    perPlantCost: 0,
+    leafProductCost: {},
+    bioControlCost: {},
+    fieldInputPrepCost: {},
+    smokeCost: {},
   });
-
-  const [bioControlCost, setBioControlCost] = useState({
-    totalRs: 0,
-    perHectare: 0,
-    perAcre: 0,
-    perBigha: 0,
-    perGuntha: 0,
-  });
-
-  const [fieldInputPrepCost, setFieldInputPrepCost] = useState({
-    totalRs: 0,
-    perHectare: 0,
-    perAcre: 0,
-    perBigha: 0,
-    perGuntha: 0,
-  });
-
-  const [smokeCost, setSmokeCost] = useState({
-    totalRs: 0,
-    perHectare: 0,
-    perAcre: 0,
-    perBigha: 0,
-    perGuntha: 0,
-  });
-
   // You can leave userId empty for now
   const [userId, setUserId] = useState("demo_user");
   const [cropId, setCropId] = useState("");
@@ -59,6 +34,7 @@ const ScheduleBill = () => {
 
   useEffect(() => {
     const fetchOrCreateBill = async () => {
+      setLoading(true);
       try {
         if (scheduleId) {
           const schedule = await getScheduleById(scheduleId);
@@ -80,23 +56,24 @@ const ScheduleBill = () => {
       const products = await getProductList();
       setProductList(products);
       setProducts(products);
+      setLoading(false);
     };
     fetchOrCreateBill();
   }, [scheduleId]);
 
   const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleProductCheck = (id, name) => {
+  const handleProductCheck = (name) => {
     setSelectedProducts((prev) => ({
       ...prev,
-      [id]: { ...prev[id], enabled: !prev[id]?.enabled, name: prev[id]?.name || name },
+      [name]: { ...prev[name], enabled: !prev[name]?.enabled, name },
     }));
   };
 
-  const handleInputChange = (id, field, value) => {
+  const handleInputChange = (name, field, value) => {
     setSelectedProducts((prev) => ({
       ...prev,
-      [id]: { ...prev[id], [field]: value, enabled: true },
+      [name]: { ...prev[name], [field]: value, enabled: true },
     }));
   };
 
@@ -107,55 +84,27 @@ const ScheduleBill = () => {
       if (name.includes(".")) {
         const [group, key] = name.split(".");
 
-        // Update group states
-        const stateSetterMap = {
-          leafProductCost: setLeafProductCost,
-          bioControlCost: setBioControlCost,
-          fieldInputPrepCost: setFieldInputPrepCost,
-          smokeCost: setSmokeCost,
-        };
-
-        const currentGroup = {
-          leafProductCost,
-          bioControlCost,
-          fieldInputPrepCost,
-          smokeCost,
-        }[group];
-
-        stateSetterMap[group]({ ...currentGroup, [key]: value });
+        setCostDetails((prev) => ({
+          ...prev,
+          [group]: {
+            ...prev[group],
+            [key]: value,
+          },
+        }));
       } else {
-        const setterMap = {
-          totalPlants: setTotalPlants,
-          totalAcres: setTotalAcres,
-          totalGuntha: setTotalGuntha,
-          totalCost: setTotalCost,
-          perPlantCost: setPerPlantCost,
-        };
-        setterMap[name](value);
+        setCostDetails((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
       }
     };
 
     const getValue = () => {
       if (name.includes(".")) {
         const [group, key] = name.split(".");
-        return (
-          {
-            leafProductCost,
-            bioControlCost,
-            fieldInputPrepCost,
-            smokeCost,
-          }[group]?.[key] || 0
-        );
+        return costDetails[group]?.[key] || 0;
       }
-      return (
-        {
-          totalPlants,
-          totalAcres,
-          totalGuntha,
-          totalCost,
-          perPlantCost,
-        }[name] || 0
-      );
+      return costDetails[name] || 0;
     };
 
     return (
@@ -194,21 +143,14 @@ const ScheduleBill = () => {
           totalAmt: Number(p.totalAmt),
         })),
       additionalInfo: {
-        totalPlants,
-        totalAcres,
-        totalGuntha,
-        totalCost,
-        perPlantCost,
-        leafProductCost,
-        bioControlCost,
-        fieldInputPrepCost,
-        smokeCost,
+        ...costDetails, // all cost fields from the unified object
       },
       createdBy: userId,
     };
+
     console.log("payload ", payload);
-    // return;
     const res = await createScheduleBill(payload);
+
     if (res.status === 201 || res.status === 200) {
       toast.success("Schedule bill saved!");
     } else {
@@ -216,6 +158,69 @@ const ScheduleBill = () => {
     }
   };
 
+  const [billData, setBillData] = useState(null);
+
+  useEffect(() => {
+    if (scheduleId) {
+      const fetchBill = async () => {
+        try {
+          const res = await getScheduleBillByScheduleId(scheduleId);
+          if (res) {
+            console.log("res ", res);
+            setBillId(res?.scheduleId);
+            setBillData(res);
+          }
+        } catch (err) {
+          console.error("Error fetching bill:", err);
+        }
+      };
+      fetchBill();
+    }
+  }, [scheduleId]);
+
+  useEffect(() => {
+    if (billData && billData.additionalInfo) {
+      const info = billData.additionalInfo;
+
+      setCostDetails({
+        totalPlants: info.totalPlants || 0,
+        totalAcres: info.totalAcres || 0,
+        totalGuntha: info.totalGuntha || 0,
+        totalCost: info.totalCost || 0,
+        perPlantCost: info.perPlantCost || 0,
+        leafProductCost: info.leafProductCost || {},
+        bioControlCost: info.bioControlCost || {},
+        fieldInputPrepCost: info.fieldInputPrepCost || {},
+        smokeCost: info.smokeCost || {},
+      });
+
+      setCropId(billData.cropId || "");
+      setCropName(billData.cropName || "");
+    }
+  }, [billData]);
+
+  useEffect(() => {
+    if (billData && Array.isArray(billData.items)) {
+      const formatted = {};
+      billData.items.forEach((item) => {
+        formatted[item.name] = {
+          name: item.name || "",
+          enabled: true,
+          times: item.times || "",
+          totalMl: item.totalMl || "",
+          ltrKg: item.ltrKg || "",
+          rate: item.rate || "",
+          totalAmt: item.totalAmt || "",
+        };
+      });
+      setSelectedProducts(formatted);
+    }
+  }, [billData]);
+  const navigate = useNavigate();
+
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">🧾 Schedule Bill तयार करा</h2>
@@ -248,11 +253,11 @@ const ScheduleBill = () => {
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => {
-                    const selected = selectedProducts[product._id] || {};
+                    const selected = selectedProducts[product.name] || {};
                     return (
-                      <tr key={product._id} className="hover:bg-green-50">
+                      <tr key={product.name} className="hover:bg-green-50">
                         <td className="border p-1 text-center">
-                          <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product._id, product.name)} />
+                          <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product.name)} />
                         </td>
                         <td className="border p-1">{product.name}</td>
                         {["times", "totalMl", "ltrKg", "rate", "totalAmt"].map((field) => (
@@ -263,7 +268,7 @@ const ScheduleBill = () => {
                               className="w-20 px-1 py-1 border border-green-300 rounded text-xs"
                               disabled={!selected.enabled}
                               value={selected[field] || ""}
-                              onChange={(e) => handleInputChange(product._id, field, e.target.value)}
+                              onChange={(e) => handleInputChange(product.name, field, e.target.value)}
                             />
                           </td>
                         ))}
@@ -300,10 +305,15 @@ const ScheduleBill = () => {
       </div>
 
       {/* Save Button */}
-      <div className="mt-6 text-center">
+      <div className="mt-6 flex justify-center gap-14 text-center">
         <button className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg shadow" onClick={handleSaveScheduleBill}>
           💾 Save Schedule Bill
         </button>
+        {billId && (
+          <button onClick={() => navigate(`/schedulebill/view/${billId}`)} className="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded-full shadow" title="View Schedule Bill">
+            🧾 View Bill
+          </button>
+        )}
       </div>
     </div>
   );

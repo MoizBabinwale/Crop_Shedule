@@ -28,11 +28,24 @@ const ProductList = () => {
   // Submit handler
 
   const handleSubmit = async (e) => {
-    setLoading(true);
-    e.preventDefault();
+    console.log("productName ", productName);
+
     const trimmedName = productName.trim().toLowerCase();
 
+    // Show error if user entered only spaces
+    if (productName.length > 0 && trimmedName.length === 0) {
+      toast.error("Product name should not contain only spaces!");
+      return;
+    }
+
+    // Show error if completely empty
+    if (!trimmedName) {
+      toast.error("Please enter a product name!");
+      return;
+    }
     if (!trimmedName) return;
+    setLoading(true);
+    e.preventDefault();
 
     // Check for duplicate (case-insensitive)
     const isDuplicate = products.some((product) => product.name.toLowerCase() === trimmedName && product._id !== editingId);

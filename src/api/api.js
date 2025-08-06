@@ -29,7 +29,7 @@ export const submitData = async (cropId, shedule) => {
   try {
     const res = await axios.post(`${BASE_URL}/schedule/create/${cropId}`, shedule);
 
-    if (res.status === 201) {
+    if (res.status === 201 || res.status === 200) {
       return res.data;
     }
   } catch (error) {
@@ -96,9 +96,9 @@ export const getSchedulesByCropId = async (cropId) => {
     if (res) {
       return res.data;
     }
-    return [];
+    return res;
   } catch (error) {
-    console.error("Error fetching schedules:", error);
+    console.error("Error शेड्यूल बिलhing schedules:", error);
     return error;
   }
 };
@@ -106,7 +106,7 @@ export const getSchedulesByCropId = async (cropId) => {
 // QUOTATION APIS
 export const createQuotation = async (quotationData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/crop/quotations`, quotationData);
+    const response = await axios.post(`${BASE_URL}/quotations`, quotationData);
     return response.data;
   } catch (error) {
     console.error("Error creating quotation:", error);
@@ -115,19 +115,28 @@ export const createQuotation = async (quotationData) => {
 };
 
 export const getAllQuotations = async () => {
-  const res = await fetch(`${BASE_URL}/crop/quotations`);
-  if (!res.ok) throw new Error("Failed to fetch quotations");
-  return res.json();
+  try {
+    const res = await axios.get(`${BASE_URL}/quotations`);
+
+    return res.data;
+  } catch (error) {
+    console.error("Error creating quotation:", error);
+    throw new Error(error.response?.data?.error || "Failed to create quotation.");
+  }
 };
 
 export const getQuotationById = async (id) => {
-  const res = await fetch(`${BASE_URL}/quotations/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch quotation");
-  return res.json();
+  try {
+    const res = await axios.get(`${BASE_URL}/quotations/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error creating quotation:", error);
+    throw new Error(error.response?.data?.error || "Failed to create quotation.");
+  }
 };
 
 export const updateQuotation = async (id, data) => {
-  const res = await fetch(`${BASE_URL}/crop/quotations/${id}`, {
+  const res = await fetch(`${BASE_URL}/quotations/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -137,7 +146,7 @@ export const updateQuotation = async (id, data) => {
 };
 
 export const deleteQuotation = async (id) => {
-  const res = await fetch(`${BASE_URL}/crop/quotations/${id}`, {
+  const res = await fetch(`${BASE_URL}/quotations/${id}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to delete quotation");
@@ -168,47 +177,9 @@ export const createScheduleBill = async (payload) => {
 export const createQuotationBill = async (quotationId, totalAcres) => {
   try {
     // Step 1: Fetch Quotation (you might already have it in frontend, or fetch if needed)
-    const quotationRes = await axios.get(`${BASE_URL}/quotations/${quotationId}`);
-    const quotation = quotationRes.data;
-
-    // Step 2: Get 1-acre schedule
-    const scheduleData = await getSchedulesByCropId(quotation.cropId);
-    console.log("scheduleData ", scheduleData);
-
-    // Step 3: Multiply schedule data for total acres
-    const generateBillData = (scheduleData, acres) => {
-      return scheduleData.map((item) => {
-        const totalML = Number(item.totalML || 0) * acres;
-        const totalCost = Number(item.totalCost || 0) * acres;
-        return {
-          productName: item.productName,
-          times: item.times,
-          totalML,
-          ratePerML: item.ratePerML,
-          totalCost,
-        };
-      });
-    };
-
-    const multipliedSchedule = generateBillData(scheduleData, totalAcres);
-
-    // Step 4: Calculate total cost
-    const totalCost = multipliedSchedule.reduce((acc, cur) => acc + cur.totalCost, 0);
-
-    // Step 5: Prepare bill object
-    const billPayload = {
-      quotationId,
-      cropId: quotation.cropId,
-      totalAcres,
-      totalPlants: quotation.totalPlants || 1000,
-      farmerInfo: quotation.farmerInfo,
-      schedule: multipliedSchedule,
-      totalCost,
-    };
-
-    // Step 6: Save to MongoDB
-    const saveRes = await axios.post(`${BASE_URL}/quotationbills/create`, billPayload);
-    return saveRes.data._id;
+    const quotationBillRes = await axios.post(`${BASE_URL}/quotationbills/${quotationId}/${totalAcres}`);
+    console.log("quotationbills ", quotationBillRes.data);
+    return quotationBillRes.data;
   } catch (error) {
     console.error("Error generating quotation bill:", error);
     throw error;

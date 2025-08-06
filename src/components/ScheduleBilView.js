@@ -31,10 +31,10 @@ const ScheduleBillView = () => {
         <div>
           <h1 className="text-xl font-bold text-green-700">💼 शेड्यूल बिल - Schedule Bill</h1>
           <p className="text-green-600">पीक: {cropName}</p>
-          <p className="text-green-600">बनवले: {createdBy}</p>
-          <p className="text-green-600">दिनांक: {new Date(billDate).toLocaleDateString()}</p>
+          {/* <p className="text-green-600">बनवले: {createdBy}</p> */}
+          <p className="text-green-600">दिनांक: {new Date(billDate).toLocaleDateString("en-GB")}</p>
         </div>
-        <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded shadow">
+        <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded shadow print:hidden">
           🖨️ Print
         </button>
       </div>
@@ -58,8 +58,8 @@ const ScheduleBillView = () => {
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
-                <td className="border px-2 py-1">₹ {item.rate}</td>
-                <td className="border px-2 py-1">₹ {item.totalAmt}</td>
+                <td className="border px-2 py-1">{!item.rate ? "" : <>₹ {item.rate}</>}</td>
+                <td className="border px-2 py-1"> {!item.totalAmt ? "" : <>₹ {item.totalAmt}</>}</td>
               </tr>
             ))}
           </tbody>
@@ -68,7 +68,7 @@ const ScheduleBillView = () => {
 
       <h2 className="mt-6 mb-2 text-green-700 font-semibold text-base">💰 खर्चाचा सारांश - Cost Summary</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-green-800">
-        <SummaryField label="Total Plants" value={additionalInfo.totalPlants} />
+        <SummaryField label="Total Plants (7 Feet x5 Feet)" value={additionalInfo.totalPlants} />
         <SummaryField label="Total Acres" value={additionalInfo.totalAcres} />
         <SummaryField label="Total Guntha" value={additionalInfo.totalGuntha} />
         <SummaryField label="Total Cost" value={`₹ ${additionalInfo.totalCost}`} />
@@ -76,10 +76,10 @@ const ScheduleBillView = () => {
       </div>
 
       {/* Grouped Costs */}
-      <GroupedCost title="🌿 Leaf Product Cost" data={additionalInfo.leafProductCost} />
-      <GroupedCost title="🧪 Bio Control Cost" data={additionalInfo.bioControlCost} />
-      <GroupedCost title="🧂 Field Input Prep Cost" data={additionalInfo.fieldInputPrepCost} />
-      <GroupedCost title="🔥 Smoke Cost" data={additionalInfo.smokeCost} />
+      <GroupedCost title="🌿 पर्णनेत्र उत्पादों की लागत" data={additionalInfo.leafProductCost} />
+      <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={additionalInfo.bioControlCost} />
+      <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={additionalInfo.fieldInputPrepCost} />
+      <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={additionalInfo.smokeCost} />
     </div>
   );
 };
@@ -95,11 +95,11 @@ const GroupedCost = ({ title, data = {} }) => (
   <div className="mt-6">
     <h3 className="text-green-600 font-semibold mb-2">{title}</h3>
     <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
-      <SummaryField label="Total ₹" value={`₹ ${data.totalRs || 0}`} />
-      <SummaryField label="₹/Hectare" value={`₹ ${data.perHectare || 0}`} />
-      <SummaryField label="₹/Acre" value={`₹ ${data.perAcre || 0}`} />
-      <SummaryField label="₹/Bigha" value={`₹ ${data.perBigha || 0}`} />
-      <SummaryField label="₹/Guntha" value={`₹ ${data.perGuntha || 0}`} />
+      <SummaryField label="एकूण ₹" value={`₹ ${data.totalRs || 0}`} />
+      <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹ ${data.perHectare || 0}`} />
+      <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹ ${data.perAcre || 0}`} />
+      <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹ ${data.perBigha || 0}`} />
+      <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹ ${data.perGuntha || 0}`} />
     </div>
   </div>
 );
