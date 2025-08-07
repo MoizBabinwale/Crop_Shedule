@@ -313,18 +313,20 @@ const Form1 = () => {
                         </div>
 
                         {/* Other Input Fields */}
+                        {/* Other Input Fields */}
                         {[
-                          { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)" },
-                          { name: "totalAcres", label: "कुल एकड़" },
-                          { name: "totalWater", label: "पानी कुल लीटर" },
-                          { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन" },
+                          { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", placeholder: "जैसे: 500" },
+                          { name: "totalAcres", label: "कुल एकड़", placeholder: "जैसे: 2" },
+                          { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 1000" },
+                          { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5वें दिन से" },
                         ].map((field, i) => (
-                          <div key={i} className="grid  gap-3 items-center">
+                          <div key={i} className="grid gap-3 items-center">
                             <label className="text-green-700 font-medium">{field.label}:</label>
                             <input
                               type="text"
                               value={week[field.name]}
                               onChange={(e) => handleWeekFormChange(index, field.name, e.target.value)}
+                              placeholder={field.placeholder}
                               className="w-full border border-green-300 text-green-800 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
                             />
                           </div>

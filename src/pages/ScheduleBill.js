@@ -225,22 +225,24 @@ const ScheduleBill = () => {
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">🧾 Schedule Bill तयार करा</h2>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col gap-6">
         {/* Product Entry Section */}
-        <div className="lg:w-7/12 w-full">
+        <div className="w-full flex flex-col">
           <h3 className="text-xl font-semibold text-green-700 mb-3">🌿 उत्पाद विवरण - Product Details</h3>
-          <div className="bg-white rounded-xl border border-green-300 shadow-md p-4 space-y-4">
+          <div className="bg-white rounded-xl border border-green-300 shadow-md p-4 flex flex-col h-full">
+            {/* Search */}
             <input
               type="text"
               placeholder="🔍 उत्पादन शोधा..."
-              className="w-full border border-green-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-green-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            <div className="overflow-auto">
-              <table className="table-auto w-full text-sm border border-green-600">
-                <thead className="bg-green-100 text-green-900 font-semibold">
+            {/* Table Container with fixed height and scroll */}
+            <div className="overflow-x-auto max-h-[400px] overflow-y-auto border border-green-200 rounded">
+              <table className="table-auto w-full text-sm text-green-900">
+                <thead className="bg-green-100 sticky top-0 z-10">
                   <tr>
                     <th className="border p-2">निवडा</th>
                     <th className="border p-2">साहित्य</th>
@@ -282,24 +284,26 @@ const ScheduleBill = () => {
         </div>
 
         {/* Cost Summary Section */}
-        <div className="lg:w-5/12 w-full bg-green-50 border border-green-300 rounded-xl p-4 shadow-md space-y-5">
-          <h3 className="text-xl text-green-800 font-bold">💰 खर्च तपशील</h3>
+        <div className=" w-full bg-green-50 border border-green-300 rounded-xl p-4 shadow-md flex flex-col justify-between">
+          <div>
+            <h3 className="text-xl text-green-800 font-bold mb-4">💰 खर्च तपशील</h3>
 
-          {/* Total Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <InputField label="Total Plants" name="totalPlants" />
-            <InputField label="Total Acres" name="totalAcres" />
-            <InputField label="Total Guntha" name="totalGuntha" />
-            <InputField label="Total Cost" name="totalCost" />
-            <InputField label="Per Plant Cost" name="perPlantCost" />
-          </div>
+            {/* Total Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+              <InputField label="Total Plants" name="totalPlants" />
+              <InputField label="Total Acres" name="totalAcres" />
+              <InputField label="Total Guntha" name="totalGuntha" />
+              <InputField label="Total Cost" name="totalCost" />
+              <InputField label="Per Plant Cost" name="perPlantCost" />
+            </div>
 
-          {/* Cost Groups */}
-          <div className="space-y-3">
-            <CostGroup title="🌿 पर्णनेत्र उत्पादन खर्च" prefix="leafProductCost" />
-            <CostGroup title="🧫 जैव नियंत्रण उत्पादन खर्च" prefix="bioControlCost" />
-            <CostGroup title="🧪 शेत इनपुट तयार करण्याचा खर्च" prefix="fieldInputPrepCost" />
-            <CostGroup title="🌫️ धुराचे साहित्य खर्च" prefix="smokeCost" />
+            {/* Cost Groups */}
+            <div className="space-y-3">
+              <CostGroup title="🌿 पर्णनेत्र उत्पादन खर्च" prefix="leafProductCost" />
+              <CostGroup title="🧫 जैव नियंत्रण उत्पादन खर्च" prefix="bioControlCost" />
+              <CostGroup title="🧪 शेत इनपुट तयार करण्याचा खर्च" prefix="fieldInputPrepCost" />
+              <CostGroup title="🌫️ धुराचे साहित्य खर्च" prefix="smokeCost" />
+            </div>
           </div>
         </div>
       </div>

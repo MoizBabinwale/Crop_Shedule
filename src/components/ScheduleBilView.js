@@ -51,6 +51,7 @@ const ScheduleBillView = () => {
               <th className="border px-2 py-1">Total Amt</th>
             </tr>
           </thead>
+
           <tbody>
             {items.map((item, index) => (
               <tr key={index}>
@@ -58,11 +59,21 @@ const ScheduleBillView = () => {
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
-                <td className="border px-2 py-1">{!item.rate ? "" : <>₹ {item.rate}</>}</td>
-                <td className="border px-2 py-1"> {!item.totalAmt ? "" : <>₹ {item.totalAmt}</>}</td>
+                <td className="border px-2 py-1">{item.rate ? `₹ ${item.rate}` : ""}</td>
+                <td className="border px-2 py-1">{item.totalAmt ? `₹ ${item.totalAmt}` : ""}</td>
               </tr>
             ))}
           </tbody>
+
+          {/* Total Cost Row */}
+          <tfoot>
+            <tr className="bg-green-100">
+              <td colSpan="5" className="border px-2 py-2 text-right font-bold text-green-800">
+                एकूण रक्कम:
+              </td>
+              <td className="border px-2 py-2 font-bold text-green-800">₹ {items.reduce((acc, item) => acc + (parseFloat(item.totalAmt) || 0), 0).toFixed(2)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
