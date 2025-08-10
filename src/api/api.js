@@ -98,7 +98,7 @@ export const getSchedulesByCropId = async (cropId) => {
     }
     return res;
   } catch (error) {
-    console.error("Error शेड्यूल बिलhing schedules:", error);
+    console.error("Error ", error);
     return error;
   }
 };
@@ -106,6 +106,8 @@ export const getSchedulesByCropId = async (cropId) => {
 // QUOTATION APIS
 export const createQuotation = async (quotationData) => {
   try {
+    console.log("quotationData ", quotationData);
+
     const response = await axios.post(`${BASE_URL}/quotations`, quotationData);
     return response.data;
   } catch (error) {

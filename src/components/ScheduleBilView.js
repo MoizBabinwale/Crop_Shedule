@@ -97,8 +97,9 @@ const ScheduleBillView = () => {
 
 const SummaryField = ({ label, value }) => (
   <div className="bg-green-50 p-2 rounded border border-green-200">
-    <div className="text-xs text-green-600">{label}</div>
-    <div className="text-sm font-semibold">{value}</div>
+    <div className="text-xs text-green-600">
+      {label} :- <span className="text-sm font-semibold">{value}</span>
+    </div>
   </div>
 );
 

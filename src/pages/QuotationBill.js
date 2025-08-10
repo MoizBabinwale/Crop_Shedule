@@ -9,7 +9,6 @@ const QuotationBill = () => {
   useEffect(() => {
     const fetchBill = async () => {
       const data = await getQuotationBillById(quotationId);
-      console.log("data ", data);
 
       setBillData(data);
     };
@@ -104,9 +103,32 @@ const QuotationBill = () => {
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
                 <td className="border px-2 py-1">{item.rate ? `₹ ${item.rate}` : ""}</td>
-                <td className="border px-2 py-1">{item.totalAmt ? `₹ ${item.totalAmt}` : ""}</td>
+                <td className="border px-2 py-1">
+                  {item.totalAmt
+                    ? `₹ ${parseFloat(item.totalAmt).toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : ""}
+                </td>
               </tr>
             ))}
+
+            {/* Total Row */}
+            <tr className="bg-green-50 font-bold">
+              <td className="border px-2 py-1 text-right" colSpan={5}>
+                एकूण रक्कम (Total):
+              </td>
+              <td className="border px-2 py-1">
+                ₹{" "}
+                {items
+                  .reduce((sum, item) => sum + (parseFloat(item.totalAmt) || 0), 0)
+                  .toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

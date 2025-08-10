@@ -11,6 +11,8 @@ import QuotationBill from "../pages/QuotationBill.js";
 import ScheduleBill from "../pages/ScheduleBill.js";
 import ScheduleBillView from "../components/ScheduleBilView.js";
 import ScheduleView from "../pages/ScheduleView.js";
+import CropList from "../pages/CropList.js";
+import BillsPage from "../pages/BillsPage.js";
 
 const AllRoutes = () => {
   return (
@@ -19,11 +21,16 @@ const AllRoutes = () => {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/form1" element={<Form1 />} />
-      <Route path="/products" element={<ProductList />} />
+      {/* <Route path="/products" element={<ProductList />} /> */}
       <Route path="/schedule/:cropId" element={<ScheduleView />} />
       <Route path="/schedule/quotation/:quatationId" element={<QuatationGen />} />
 
+      <Route path="/croplists" element={<CropList />} />
+      <Route path="/products" element={<ProductList />} />
       <Route path="/quotation/master" element={<QuotationMaster />} />
+      <Route path="/bills" element={<BillsPage />} />
+
+      {/* <Route path="/quotation/master" element={<QuotationMaster />} /> */}
       <Route path="/bill/:billId" element={<QuotationBill />} />
       <Route path="/scheduleBill/:scheduleId" element={<ScheduleBill />} />
       <Route path="/scheduleBill/view/:scheduleId" element={<ScheduleBillView />} />

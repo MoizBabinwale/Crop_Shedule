@@ -86,7 +86,7 @@ const QuatationGen = () => {
                   <th className="border px-2 py-1 whitespace-nowrap">सप्ताह</th>
                   <th className="border px-2 py-1 whitespace-nowrap">तारीख</th>
                   <th className="border px-2 py-1 whitespace-nowrap">प्रति लीटर पानी में मिली</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">पानी / एकड़</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">पानी {quotation.acres} एकड़ के लीये</th>
                   <th className="border px-2 py-1 whitespace-nowrap">कुल एकड़</th>
                   <th className="border px-2 py-1 whitespace-nowrap">पानी कुल</th>
                   <th className="border px-2 py-1 whitespace-nowrap">आरंभ दिन से उपयोग</th>
@@ -97,9 +97,14 @@ const QuatationGen = () => {
               <tbody>
                 <tr>
                   <td className="border px-2 py-1 text-center">{week.weekNumber}</td>
-                  <td className="border px-2 py-1 text-center">{week.date?.slice(0, 10)}</td>
-                  <td className="border px-2 py-1 text-center">{week.perLiter}</td>
-                  <td className="border px-2 py-1 text-center">{week.waterPerAcre}</td>
+                  <td className="border px-2 py-1 text-center">
+                    {week.date
+                      ? new Date(week.date).toLocaleDateString("en-GB") // en-GB gives dd/mm/yyyy
+                      : ""}
+                  </td>
+
+                  <td className="border px-2 py-1 text-center">{Number(week.perLiter) * quotation.acres}</td>
+                  <td className="border px-2 py-1 text-center">{Number(week.waterPerAcre) * quotation.acres}</td>
                   <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
                   <td className="border px-2 py-1 text-center">{week.totalWater}</td>
                   <td className="border px-2 py-1 text-center">{week.useStartDay ? `${week.useStartDay} वा दिन` : ""}</td>
@@ -112,14 +117,14 @@ const QuatationGen = () => {
                           </div>
                           {prod.perLitreMix && (
                             <div className="text-green-800">
-                              प्रति लीटर पानी मे मिली: <span className="text-blue-700 font-medium">{prod.perLitreMix}</span>
+                              कुल पानी मे मिली: <span className="text-blue-700 font-medium">{prod.perLitreMix * quotation.acres}</span>
                             </div>
                           )}
                         </li>
                       ))}
                     </ul>
                   </td>
-                  <td className="border px-2 py-1 text-left">{week.instructions}</td>
+                  <td className="border px-2 py-1 text-left" dangerouslySetInnerHTML={{ __html: week.instructions || "" }}></td>
                 </tr>
               </tbody>
             </table>

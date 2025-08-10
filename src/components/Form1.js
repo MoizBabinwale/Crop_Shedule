@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getProductList, getSchedulesByCropId, submitData } from "../api/api";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { useNavigate } from "react-router-dom";
 import Loading from "./Loading";
 import bgImage from "../assets/farme.jpg";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
+
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const Form1 = () => {
@@ -30,23 +31,6 @@ const Form1 = () => {
   // Fetch products once
   useEffect(() => {
     fetchProducts();
-
-    // Initialize weekForms
-    setWeekForms(
-      Array.from({ length: weeks }, (_, i) => ({
-        weekNumber: i + 1,
-        date: "",
-        perLiter: "",
-        waterPerAcre: "",
-        totalAcres: "",
-        totalWater: "",
-        productAmountMg: "",
-        productAmountLtr: "",
-        useStartDay: "",
-        instructions: "",
-        products: {}, // { productId: { ml: "", l: "" } }
-      }))
-    );
   }, [weeks]);
 
   const fetchProducts = async () => {
@@ -59,8 +43,24 @@ const Form1 = () => {
     }
   };
 
-  const handleWeekFormChange = (weekIndex, field, value) => {
-    setWeekForms((prev) => prev.map((week, idx) => (idx === weekIndex ? { ...week, [field]: value } : week)));
+  // Function to handle date & other field changes
+  const handleWeekFormChange = (index, field, value) => {
+    const updatedWeeks = [...weekForms];
+
+    // If the date of week 1 changes, auto-fill all weeks
+    if (field === "date" && index === 0) {
+      const startDate = new Date(value);
+
+      updatedWeeks.forEach((week, i) => {
+        const newDate = new Date(startDate);
+        newDate.setDate(startDate.getDate() + i * 7); // 7 days gap for each week
+        week.date = newDate.toISOString().split("T")[0]; // Format YYYY-MM-DD
+      });
+    } else {
+      updatedWeeks[index][field] = value;
+    }
+
+    setWeekForms(updatedWeeks);
   };
 
   const handleQuantityChange = (weekIndex, productId, field, value) => {
@@ -238,12 +238,12 @@ const Form1 = () => {
             Array.from({ length: weeks }, (_, i) => ({
               weekNumber: i + 1,
               date: "",
-              perLiter: "",
-              waterPerAcre: "",
-              totalAcres: "",
-              totalWater: "",
-              productAmountMg: "",
-              productAmountLtr: "",
+              perLiter: 0,
+              waterPerAcre: 0,
+              totalAcres: 0,
+              totalWater: 0,
+              productAmountMg: 0,
+              productAmountLtr: 0,
               useStartDay: "",
               instructions: "",
               products: {},
@@ -342,10 +342,12 @@ const Form1 = () => {
                               const isSelected = !!week.products[product._id];
                               return (
                                 <div key={product._id} className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200">
-                                  <label className="flex items-center gap-2">
+                                  <label className="flex items-center gap-3">
                                     <input type="checkbox" checked={isSelected} onChange={() => handleCheckboxChange(index, product._id)} />
-                                    <span className="text-sm">{product.name}</span>
+                                    <span className="text-sm font-medium text-green-900">{product.name}</span>
+                                    <span className="text-sm text-gray-600">₹{product.pricePerAcre} / acre</span>
                                   </label>
+
                                   <div className="flex gap-1">
                                     <input
                                       type="number"
@@ -413,11 +415,12 @@ const Form1 = () => {
                 ))}
 
                 <div className="text-center mt-6 flex flex-col sm:flex-row justify-center gap-4">
-                  <button onClick={handleSubmit} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
-                    ✅ सभी शेड्यूल सेव करें (Save All Schedules)
+                  <button onClick={handleSubmit} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow">
+                    {" "}
+                    सभी शेड्यूल सेव करें (Save All Schedules)
                   </button>
                   <button onClick={() => generateScheduleBill()} disabled={!scheduleId} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
-                    ✅ शेड्युल बिल पाहा
+                    ✅ शेड्युल बिल
                   </button>
                   <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                     👀 शेड्यूल पहा (View Schedule)

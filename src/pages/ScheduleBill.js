@@ -63,10 +63,10 @@ const ScheduleBill = () => {
 
   const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleProductCheck = (name) => {
+  const handleProductCheck = (name, pricePerAcre) => {
     setSelectedProducts((prev) => ({
       ...prev,
-      [name]: { ...prev[name], enabled: !prev[name]?.enabled, name },
+      [name]: { ...prev[name], enabled: !prev[name]?.enabled, name, totalAmt: pricePerAcre },
     }));
   };
 
@@ -76,55 +76,6 @@ const ScheduleBill = () => {
       [name]: { ...prev[name], [field]: value, enabled: true },
     }));
   };
-
-  const InputField = ({ label, name }) => {
-    const handleChange = (e) => {
-      const value = parseFloat(e.target.value) || 0;
-
-      if (name.includes(".")) {
-        const [group, key] = name.split(".");
-
-        setCostDetails((prev) => ({
-          ...prev,
-          [group]: {
-            ...prev[group],
-            [key]: value,
-          },
-        }));
-      } else {
-        setCostDetails((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      }
-    };
-
-    const getValue = () => {
-      if (name.includes(".")) {
-        const [group, key] = name.split(".");
-        return costDetails[group]?.[key] || 0;
-      }
-      return costDetails[name] || 0;
-    };
-
-    return (
-      <div className="flex flex-col text-sm">
-        <label>{label}</label>
-        <input type="number" name={name} className="border px-2 py-1 rounded" value={getValue()} onChange={handleChange} />
-      </div>
-    );
-  };
-
-  const CostGroup = ({ title, prefix }) => (
-    <div>
-      <h3 className="font-semibold text-green-700">{title}</h3>
-      <div className="grid grid-cols-2 gap-2">
-        {["totalRs", "perHectare", "perAcre", "perBigha", "perGuntha"].map((key) => (
-          <InputField key={key} label={key.replace(/([A-Z])/g, " $1")} name={`${prefix}.${key}`} />
-        ))}
-      </div>
-    </div>
-  );
 
   const handleSaveScheduleBill = async () => {
     const payload = {
@@ -250,7 +201,7 @@ const ScheduleBill = () => {
                     <th className="border p-2">कुल Ml</th>
                     <th className="border p-2">Ltr/Kg</th>
                     <th className="border p-2">Rate</th>
-                    <th className="border p-2">Total Amt</th>
+                    <th className="border p-2">Total Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -259,10 +210,10 @@ const ScheduleBill = () => {
                     return (
                       <tr key={product.name} className="hover:bg-green-50">
                         <td className="border p-1 text-center">
-                          <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product.name)} />
+                          <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product.name, product.pricePerAcre)} />
                         </td>
                         <td className="border p-1">{product.name}</td>
-                        {["times", "totalMl", "ltrKg", "rate", "totalAmt"].map((field) => (
+                        {["times", "totalMl", "ltrKg", "rate"].map((field) => (
                           <td className="border p-1" key={field}>
                             <input
                               type="number"
@@ -274,6 +225,7 @@ const ScheduleBill = () => {
                             />
                           </td>
                         ))}
+                        <td className="border p-1">{product.pricePerAcre}</td>
                       </tr>
                     );
                   })}
@@ -284,26 +236,66 @@ const ScheduleBill = () => {
         </div>
 
         {/* Cost Summary Section */}
-        <div className=" w-full bg-green-50 border border-green-300 rounded-xl p-4 shadow-md flex flex-col justify-between">
+        <div className="w-full bg-green-50 border border-green-300 rounded-xl p-4 shadow-md flex flex-col justify-between">
           <div>
             <h3 className="text-xl text-green-800 font-bold mb-4">💰 खर्च तपशील</h3>
 
             {/* Total Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-              <InputField label="Total Plants" name="totalPlants" />
-              <InputField label="Total Acres" name="totalAcres" />
-              <InputField label="Total Guntha" name="totalGuntha" />
-              <InputField label="Total Cost" name="totalCost" />
-              <InputField label="Per Plant Cost" name="perPlantCost" />
+              {[
+                { label: "Total Plants", key: "totalPlants" },
+                { label: "Total Acres", key: "totalAcres" },
+                { label: "Total Guntha", key: "totalGuntha" },
+                { label: "Total Cost", key: "totalCost" },
+                { label: "Per Plant Cost", key: "perPlantCost" },
+              ].map(({ label, key }) => (
+                <div key={key} className="flex flex-row items-center text-sm gap-2">
+                  <label className="w-32">{label}</label>
+                  <input
+                    type="number"
+                    name={key}
+                    className="border px-2 py-1 rounded flex-1"
+                    value={costDetails[key] || 0}
+                    onChange={(e) => setCostDetails({ ...costDetails, [key]: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+              ))}
             </div>
 
             {/* Cost Groups */}
-            <div className="space-y-3">
-              <CostGroup title="🌿 पर्णनेत्र उत्पादन खर्च" prefix="leafProductCost" />
-              <CostGroup title="🧫 जैव नियंत्रण उत्पादन खर्च" prefix="bioControlCost" />
-              <CostGroup title="🧪 शेत इनपुट तयार करण्याचा खर्च" prefix="fieldInputPrepCost" />
-              <CostGroup title="🌫️ धुराचे साहित्य खर्च" prefix="smokeCost" />
-            </div>
+            {[
+              { title: "🌿 पर्णनेत्र उत्पादन खर्च", prefix: "leafProductCost" },
+              { title: "🧫 जैव नियंत्रण उत्पादन खर्च", prefix: "bioControlCost" },
+              { title: "🧪 शेत इनपुट तयार करण्याचा खर्च", prefix: "fieldInputPrepCost" },
+              { title: "🌫️ धुराचे साहित्य खर्च", prefix: "smokeCost" },
+            ].map((group) => (
+              <div key={group.prefix} className="space-y-2 mb-4">
+                <h3 className="font-semibold text-green-700">{group.title}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {["totalRs", "perHectare", "perAcre", "perBigha", "perGuntha"].map((key) => (
+                    <div key={key} className="flex flex-row items-center text-sm gap-2">
+                      <label className="w-32">{key.replace(/([A-Z])/g, " $1")}</label>
+                      <input
+                        type="number"
+                        name={`${group.prefix}.${key}`}
+                        className="border px-2 py-1 rounded flex-1"
+                        value={costDetails[group.prefix]?.[key] || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setCostDetails((prev) => ({
+                            ...prev,
+                            [group.prefix]: {
+                              ...prev[group.prefix],
+                              [key]: value,
+                            },
+                          }));
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

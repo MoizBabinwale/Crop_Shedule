@@ -117,7 +117,7 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="bg-green-800 text-center text-sm py-4 px-2 text-gray-200">
-        © <span className="text-orange-400 font-semibold">Your Site Name</span>. All Rights Reserved. Designed by <span className="text-orange-400">HTML Codex</span>
+        © <span className="text-orange-400 font-semibold">2025 Krishi Seva Kendra.</span>. All Rights Reserved. Designed by <span className="text-orange-400">MN Developer</span>
       </div>
     </footer>
   );
