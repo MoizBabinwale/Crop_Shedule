@@ -13,6 +13,7 @@ import ScheduleBillView from "../components/ScheduleBilView.js";
 import ScheduleView from "../pages/ScheduleView.js";
 import CropList from "../pages/CropList.js";
 import BillsPage from "../pages/BillsPage.js";
+import GalleryPage from "../pages/GalleryPage.js";
 
 const AllRoutes = () => {
   return (
@@ -35,6 +36,7 @@ const AllRoutes = () => {
       <Route path="/scheduleBill/:scheduleId" element={<ScheduleBill />} />
       <Route path="/scheduleBill/view/:scheduleId" element={<ScheduleBillView />} />
       <Route path="/quotationBill/view/:quotationId" element={<QuotationBill />} />
+      <Route path="/gallery" element={<GalleryPage />} />
       {/* <Route path="/quotation/edit/:id" element={<EditQuotationPage />} />
       <Route path="/quotation/add" element={<AddQuotationPage />} />
       <Route path="/schedule/quatation/:quatationId" element={<CoatationPage />} /> */}

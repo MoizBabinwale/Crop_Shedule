@@ -22,7 +22,7 @@ const Home = () => {
       >
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         <div className="relative text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">🌾 Krishi Seva Kendra</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">🌾 Parnanetra Ayurvedic</h1>
           <p className="text-lg md:text-xl mb-6">शेतकऱ्यांसाठी आधुनिक उपाय — पीक वेळापत्रक, कोटेशन आणि आणखी बरेच काही.</p>
           {/* <button className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg shadow-lg transition duration-300">Get Started</button> */}
         </div>
@@ -34,10 +34,16 @@ const Home = () => {
           {[
             { title: "Crop Schedules", desc: "Weekly guidance for your crops.", icon: "📅", to: "/croplists" },
             { title: "Quotations", desc: "Get cost estimations instantly.", icon: "💰", to: "/quotation/master" },
-            { title: "Bills & Records", desc: "Keep track of all your farming expenses.", icon: "🧾", to: "/bills" },
+            {
+              title: "About Us",
+              desc: "Learn more about our mission and services for farmers.",
+              icon: "ℹ️",
+              to: "/about",
+            },
             { title: "Products", desc: "Know exactly what your crop needs.", icon: "🌱", to: "/products" },
-            { title: "Water Management", desc: "Plan irrigation efficiently.", icon: "💧", to: "/water-management" },
-            { title: "Expert Support", desc: "Get help from agriculture experts.", icon: "👨‍🌾", to: "/support" },
+            // { title: "Water Management", desc: "Plan irrigation efficiently.", icon: "💧", to: "/water-management" },
+            { title: "Gallery", desc: "Awareness camps & organic farming events.", icon: "🖼️", to: "/gallery" },
+            // { title: "Expert Support", desc: "Get help from agriculture experts.", icon: "👨‍🌾", to: "/support" },
           ].map((service, index) => (
             <Link key={index} to={service.to} className="bg-green-50 p-6 rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition duration-300 block">
               <div className="text-5xl mb-4">{service.icon}</div>
