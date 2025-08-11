@@ -79,7 +79,7 @@ const ScheduleView = () => {
               <tbody>
                 <tr className="border-t text-center">
                   <td className="border p-2 font-semibold">{week.weekNumber}</td>
-                  <td className="border p-2">{week.date?.slice(0, 10)}</td>
+                  <td className="border p-2">{new Date(week.date).toLocaleDateString("en-GB")}</td>
                   <td className="border p-2">{week.perLiter}</td>
                   <td className="border p-2">{week.waterPerAcre}</td>
                   <td className="border p-2">{week.totalAcres}</td>

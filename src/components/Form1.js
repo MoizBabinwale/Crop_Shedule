@@ -24,9 +24,6 @@ const Form1 = () => {
   const cropId = queryParams.get("id");
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [scheduleId, setScheduleId] = useState("");
-  const modules = {
-    toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["clean"]],
-  };
 
   // Fetch products once
   useEffect(() => {
@@ -123,7 +120,7 @@ const Form1 = () => {
         if (updatedProducts[productId]) {
           delete updatedProducts[productId];
         } else {
-          updatedProducts[productId] = { ml: "", l: "" };
+          updatedProducts[productId] = { ml: "", l: "", perLitreMix: "" };
         }
         return { ...week, products: updatedProducts };
       })
@@ -132,6 +129,7 @@ const Form1 = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setLoading(true);
 
     // Convert weekForms into a single schedule object with weeks array
@@ -202,6 +200,7 @@ const Form1 = () => {
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
+        setLoading(true);
         const res = await getSchedulesByCropId(cropId);
 
         if (res && res.weeks?.length > 0) {
@@ -210,6 +209,8 @@ const Form1 = () => {
             if (Array.isArray(week.products)) {
               week.products.forEach((product) => {
                 const matched = products.find((p) => p.name === product.name);
+                console.log("product ", product);
+
                 if (matched) {
                   const productId = matched._id;
                   const [ml = "", l = ""] = product.quantity.split("&").map((q) => q.trim().split(" ")[0]);
@@ -217,6 +218,7 @@ const Form1 = () => {
                   productsObject[productId] = {
                     ml: ml || "",
                     l: l || "",
+                    perLitreMix: product.perLitreMix,
                   };
                 }
               });
@@ -228,7 +230,6 @@ const Form1 = () => {
               products: productsObject,
             };
           });
-          console.log("res", res);
 
           setWeekForms(formattedWeeks);
           setScheduleId(res._id);
@@ -250,6 +251,7 @@ const Form1 = () => {
             }))
           );
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching schedule:", error);
       }
@@ -387,7 +389,7 @@ const Form1 = () => {
                               const productName = products.find((p) => p._id === id)?.name || "Unknown";
                               return (
                                 <li key={id}>
-                                  {productName}: {data.ml || 0} ml/g & {data.l || 0} l/kg
+                                  {productName}: {data.ml || 0} ml/g & {data.l || 0} l/kg प्रती लिटर पानी मे - {data.perLitreMix}
                                 </li>
                               );
                             })}

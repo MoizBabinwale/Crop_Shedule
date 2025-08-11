@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getQuotationBillById } from "../api/api";
 import { useParams } from "react-router-dom";
+import Loading from "../components/Loading";
 
 const QuotationBill = () => {
   const { quotationId } = useParams();
@@ -18,9 +19,10 @@ const QuotationBill = () => {
 
   // SummaryField Component
   const SummaryField = ({ label, value }) => (
-    <div className="bg-green-100 p-2 rounded shadow text-sm">
-      <p className="text-green-700 font-medium">{label}</p>
-      <p className="text-green-900 font-semibold">{value}</p>
+    <div className="bg-green-50 p-2 rounded border border-green-200">
+      <div className="text-xs text-green-600">
+        {label} :- <span className="text-sm font-semibold">{value}</span>
+      </div>
     </div>
   );
 
@@ -38,7 +40,12 @@ const QuotationBill = () => {
     </div>
   );
 
-  if (!billData) return <div>Loading...</div>;
+  if (!billData)
+    return (
+      <div>
+        <Loading />
+      </div>
+    );
 
   const { cropName, billDate, farmerInfo, items = [], additionalInfo = {} } = billData;
 
@@ -46,11 +53,15 @@ const QuotationBill = () => {
     <div className="p-4 max-w-6xl mx-auto bg-white border border-green-300 rounded shadow text-sm">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-green-700">💼 कोटेशन बिल - Quotation Bill</h1>
+        <h1 className="text-2xl font-bold text-green-700 flex items-center gap-2">
+          💼 <span className="text-green-800">कोटेशन बिल</span> -<span className="italic">Quotation Bill</span>
+        </h1>
+
         <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded shadow print:hidden">
           🖨️ Print
         </button>
       </div>
+      <h2 className="text-2xl font-bold ml-2 my-2 text-green-900"> फसल का नाम : {cropName}</h2>
 
       <div className="border-t border-b border-green-500 py-3 text-sm">
         {/* Top row with date on the right */}

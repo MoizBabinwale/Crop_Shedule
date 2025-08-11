@@ -59,7 +59,7 @@ const ScheduleBillView = () => {
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
-                <td className="border px-2 py-1">{item.rate ? `₹ ${item.rate}` : ""}</td>
+                <td className="border px-2 py-1">{item.rate}</td>
                 <td className="border px-2 py-1">{item.totalAmt ? `₹ ${item.totalAmt}` : ""}</td>
               </tr>
             ))}

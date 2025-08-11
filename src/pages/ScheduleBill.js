@@ -212,9 +212,12 @@ const ScheduleBill = () => {
                         <td className="border p-1 text-center">
                           <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product.name, product.pricePerAcre)} />
                         </td>
-                        <td className="border p-1">{product.name}</td>
-                        {["times", "totalMl", "ltrKg", "rate"].map((field) => (
-                          <td className="border p-1" key={field}>
+                        <td className="border p-1 ">{product.name}</td>
+                        <td className="border p-1 text-center">{selected.times}</td>
+                        <td className="border p-1 text-center">{selected.totalMl}</td>
+                        <td className="border p-1 text-center">{selected.ltrKg}</td>
+                        {["rate"].map((field) => (
+                          <td className="border p-1 text-center" key={field}>
                             <input
                               type="number"
                               placeholder={field}
@@ -225,7 +228,8 @@ const ScheduleBill = () => {
                             />
                           </td>
                         ))}
-                        <td className="border p-1">{product.pricePerAcre}</td>
+
+                        <td className="border p-1 text-center">₹{product.pricePerAcre}</td>
                       </tr>
                     );
                   })}

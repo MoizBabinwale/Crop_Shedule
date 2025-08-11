@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createQuotationBill, getQuotationById } from "../api/api";
 import { toast } from "react-toastify";
+import Loading from "../components/Loading";
 
 const QuatationGen = () => {
   const { quatationId } = useParams();
@@ -23,7 +24,12 @@ const QuatationGen = () => {
     if (quatationId) fetchQuotation();
   }, [quatationId]);
 
-  if (loading) return <p className="p-6 text-lg">⏳ Quotation तैयार किया जा रहा है...</p>;
+  if (loading)
+    return (
+      <p className="p-6 text-lg">
+        ⏳<Loading />
+      </p>
+    );
   if (!quotation) return <p className="p-6 text-red-600">❌ Quotation नहीं मिला</p>;
 
   const handleGenerateBill = async (quotation) => {
