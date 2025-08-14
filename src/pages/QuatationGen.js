@@ -86,35 +86,30 @@ const QuatationGen = () => {
         {/* Weekly Schedule Tables */}
         {quotation.weeks.map((week, index) => (
           <div key={index} className="overflow-x-auto mt-6">
-            <table className="min-w-[800px] w-full border border-gray-400 text-xs print:text-[10px]">
+            <table className="w-full border border-gray-400 text-xs print:text-[10px] table-fixed">
               <thead className="bg-green-100 text-gray-900">
                 <tr>
-                  <th className="border px-2 py-1 whitespace-nowrap">सप्ताह</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">तारीख</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">प्रति लीटर पानी में मिली</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">पानी {quotation.acres} एकड़ के लीये</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">कुल एकड़</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">पानी कुल</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">आरंभ दिन से उपयोग</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">उत्पाद</th>
-                  <th className="border px-2 py-1 whitespace-nowrap">निर्देश</th>
+                  <th className="border px-2 py-1 w-[50px]">सप्ताह</th>
+                  <th className="border px-2 py-1 w-[80px]">तारीख</th>
+                  <th className="border px-2 py-1 w-[90px]">प्रति लीटर पानी</th>
+                  <th className="border px-2 py-1 w-[90px]">पानी {quotation.acres} एकड़</th>
+                  <th className="border px-2 py-1 w-[70px]">कुल एकड़</th>
+                  <th className="border px-2 py-1 w-[70px]">पानी कुल</th>
+                  <th className="border px-2 py-1 w-[100px]">आरंभ दिन</th>
+                  <th className="border px-2 py-1 w-[180px]">उत्पाद</th>
+                  <th className="border px-2 py-1 w-[200px]">निर्देश</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr className="align-top">
                   <td className="border px-2 py-1 text-center">{week.weekNumber}</td>
-                  <td className="border px-2 py-1 text-center">
-                    {week.date
-                      ? new Date(week.date).toLocaleDateString("en-GB") // en-GB gives dd/mm/yyyy
-                      : ""}
-                  </td>
-
-                  <td className="border px-2 py-1 text-center">{Number(week.perLiter) * quotation.acres}</td>
-                  <td className="border px-2 py-1 text-center">{Number(week.waterPerAcre) * quotation.acres}</td>
+                  <td className="border px-2 py-1 text-center">{week.date ? new Date(week.date).toLocaleDateString("en-GB") : ""}</td>
+                  <td className="border px-2 py-1 text-center break-words">{Number(week.perLiter) * quotation.acres}</td>
+                  <td className="border px-2 py-1 text-center break-words">{Number(week.waterPerAcre) * quotation.acres}</td>
                   <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
                   <td className="border px-2 py-1 text-center">{week.totalWater}</td>
                   <td className="border px-2 py-1 text-center">{week.useStartDay ? `${week.useStartDay} वा दिन` : ""}</td>
-                  <td className="border px-2 py-1 text-left">
+                  <td className="border px-2 py-1 text-left break-words">
                     <ul className="list-disc pl-4 space-y-1">
                       {(week.products || []).map((prod, i) => (
                         <li key={i}>
@@ -130,7 +125,36 @@ const QuatationGen = () => {
                       ))}
                     </ul>
                   </td>
-                  <td className="border px-2 py-1 text-left" dangerouslySetInnerHTML={{ __html: week.instructions || "" }}></td>
+                  <td className="border px-2 py-1 text-left break-words">
+                    <div className="inline-flex flex-wrap items-start gap-1">
+                      {(week.products || [])
+                        .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
+                        .map((prod, i, arr) => (
+                          <span key={i} className="text-xs sm:text-sm font-bold">
+                            {prod.quantity} {prod.name}
+                            {i < arr.length - 1 && " और "}
+                          </span>
+                        ))}
+                      <span dangerouslySetInnerHTML={{ __html: week.instructions }} className="text-xs sm:text-sm" />
+                      {(week.products || [])
+                        .filter((prod) => prod.category === "खेत पर पत्तों से धुवा")
+                        .map((prod, i, arr) => {
+                          let kgValue = "";
+                          const mlPart = prod.quantity.split("&")[0].trim();
+                          const num = parseFloat(mlPart);
+                          if (!isNaN(num)) kgValue = (num / 1000).toFixed(3) + " KG";
+                          return (
+                            <span key={i} className="text-xs sm:text-sm">
+                              {arr.length > 1 && i > 0 && " और "}
+                              <span className="font-bold">
+                                {kgValue} {prod.name}
+                              </span>{" "}
+                              धुवा करना
+                            </span>
+                          );
+                        })}
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>

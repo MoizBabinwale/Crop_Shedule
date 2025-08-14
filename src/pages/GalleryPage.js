@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import img1 from "../assets/Galleryimg/1.jpeg";
 import img2 from "../assets/Galleryimg/2.jpeg";
 import img3 from "../assets/Galleryimg/3.jpeg";
@@ -30,6 +30,10 @@ import poster8 from "../assets/8.jpg";
 
 const GalleryPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
   const imagesSrc = [img11, img12, img13, img14, img15, img16, img17, img18, img19, img20];
   const posters = [poster1, poster2, poster3, poster4, poster5, poster6, poster7, poster8];
 
@@ -50,7 +54,7 @@ const GalleryPage = () => {
 
   return (
     <div className="bg-green-50 min-h-screen px-4 py-8">
-      <h2 className="text-2xl font-bold text-green-700 mb-6 text-center">📢 Awareness Posters</h2>
+      <h2 className="text-2xl font-bold text-green-700 mb-6 text-center">📢 Posters</h2>
 
       {/* Poster Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">

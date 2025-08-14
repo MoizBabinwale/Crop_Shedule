@@ -13,7 +13,6 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 const Form1 = () => {
   const location = useLocation();
   const [products, setProducts] = useState([]);
-  const [productLists, setProductsLists] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [weekForms, setWeekForms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,10 +22,12 @@ const Form1 = () => {
   const weeks = queryParams.get("weeks");
   const cropId = queryParams.get("id");
   const [productsLoaded, setProductsLoaded] = useState(false);
+  const [isBillReady, setIsBillReady] = useState(false);
   const [scheduleId, setScheduleId] = useState("");
 
   // Fetch products once
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     fetchProducts();
   }, [weeks]);
 
@@ -34,7 +35,7 @@ const Form1 = () => {
     const data = await getProductList();
     if (data) {
       setProducts(data);
-      setProductsLists(data);
+      console.log("data ", data);
 
       setProductsLoaded(true);
     }
@@ -122,6 +123,7 @@ const Form1 = () => {
         } else {
           updatedProducts[productId] = { ml: "", l: "", perLitreMix: "" };
         }
+
         return { ...week, products: updatedProducts };
       })
     );
@@ -142,6 +144,10 @@ const Form1 = () => {
             name: product?.name || "Unknown",
             quantity: `${data.ml || 0} ml/g & ${data.l || 0} l/kg`,
             perLitreMix: data?.perLitreMix || 0,
+            instruction: product?.instruction || "",
+            category: product?.category,
+            rate: product?.rate,
+            pricePerAcre: product?.pricePerAcre,
           };
         });
 
@@ -177,7 +183,7 @@ const Form1 = () => {
           theme: "light",
         });
       }
-
+      setIsBillReady(true);
       setScheduleId(res._id);
     } catch (err) {
       console.error(err);
@@ -198,69 +204,71 @@ const Form1 = () => {
   const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        setLoading(true);
-        const res = await getSchedulesByCropId(cropId);
-
-        if (res && res.weeks?.length > 0) {
-          const formattedWeeks = res.weeks.map((week) => {
-            const productsObject = {};
-            if (Array.isArray(week.products)) {
-              week.products.forEach((product) => {
-                const matched = products.find((p) => p.name === product.name);
-                console.log("product ", product);
-
-                if (matched) {
-                  const productId = matched._id;
-                  const [ml = "", l = ""] = product.quantity.split("&").map((q) => q.trim().split(" ")[0]);
-
-                  productsObject[productId] = {
-                    ml: ml || "",
-                    l: l || "",
-                    perLitreMix: product.perLitreMix,
-                  };
-                }
-              });
-            }
-
-            return {
-              ...week,
-              date: week.date ? week.date.slice(0, 10) : "",
-              products: productsObject,
-            };
-          });
-
-          setWeekForms(formattedWeeks);
-          setScheduleId(res._id);
-        } else {
-          // If no schedule exists, initialize empty weekForms
-          setWeekForms(
-            Array.from({ length: weeks }, (_, i) => ({
-              weekNumber: i + 1,
-              date: "",
-              perLiter: 0,
-              waterPerAcre: 0,
-              totalAcres: 0,
-              totalWater: 0,
-              productAmountMg: 0,
-              productAmountLtr: 0,
-              useStartDay: "",
-              instructions: "",
-              products: {},
-            }))
-          );
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching schedule:", error);
-      }
-    };
-
     if (cropId && productsLoaded) {
       fetchSchedule();
     }
   }, [cropId, productsLoaded, products, weeks]);
+  const fetchSchedule = async () => {
+    try {
+      setLoading(true);
+      const res = await getSchedulesByCropId(cropId);
+
+      if (res && res.weeks?.length > 0) {
+        const formattedWeeks = res.weeks.map((week) => {
+          const productsObject = {};
+          if (Array.isArray(week.products)) {
+            week.products.forEach((product) => {
+              const matched = products.find((p) => p.name === product.name);
+
+              if (matched) {
+                const productId = matched._id;
+                const [ml = "", l = ""] = product.quantity.split("&").map((q) => q.trim().split(" ")[0]);
+
+                productsObject[productId] = {
+                  ml: ml || "",
+                  l: l || "",
+                  perLitreMix: product.perLitreMix,
+                  instruction: product.instruction,
+                  category: product?.category,
+                  rate: product?.rate,
+                };
+              }
+            });
+          }
+
+          return {
+            ...week,
+            date: week.date ? week.date.slice(0, 10) : "",
+            products: productsObject,
+          };
+        });
+
+        setWeekForms(formattedWeeks);
+        setIsBillReady(true);
+        setScheduleId(res._id);
+      } else {
+        // If no schedule exists, initialize empty weekForms
+        setWeekForms(
+          Array.from({ length: weeks }, (_, i) => ({
+            weekNumber: i + 1,
+            date: "",
+            perLiter: 0,
+            waterPerAcre: 0,
+            totalAcres: 0,
+            totalWater: 0,
+            productAmountMg: 0,
+            productAmountLtr: 0,
+            useStartDay: "",
+            instructions: "",
+            products: {},
+          }))
+        );
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching schedule:", error);
+    }
+  };
 
   const navigate = useNavigate();
 
@@ -290,7 +298,7 @@ const Form1 = () => {
                 <span className="font-semibold text-green-700">📅 एकूण आठवडे:</span> {weeks}
               </p>
               <p>
-                <span className="font-semibold text-green-700"> 🧾शेड्यूल बिल:</span> {scheduleId ? <>तयार आहे</> : <>तयार नाही</>}
+                <span className="font-semibold text-green-700"> 🧾शेड्यूल बिल:</span> {isBillReady ? <>तयार आहे</> : <>तयार नाही</>}
               </p>
             </div>
           </div>
@@ -319,8 +327,8 @@ const Form1 = () => {
                         {[
                           { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", placeholder: "जैसे: 500" },
                           { name: "totalAcres", label: "कुल एकड़", placeholder: "जैसे: 2" },
-                          { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 1000" },
-                          { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5वें दिन से" },
+                          { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 500" },
+                          { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5 वें दिन से" },
                         ].map((field, i) => (
                           <div key={i} className="grid gap-3 items-center">
                             <label className="text-green-700 font-medium">{field.label}:</label>
@@ -421,11 +429,11 @@ const Form1 = () => {
                     {" "}
                     सभी शेड्यूल सेव करें (Save All Schedules)
                   </button>
-                  <button onClick={() => generateScheduleBill()} disabled={!scheduleId} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
-                    ✅ शेड्युल बिल
-                  </button>
                   <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                     👀 शेड्यूल पहा (View Schedule)
+                  </button>
+                  <button onClick={() => generateScheduleBill()} disabled={!isBillReady} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
+                    ✅ शेड्युल बिल
                   </button>
                 </div>
               </div>

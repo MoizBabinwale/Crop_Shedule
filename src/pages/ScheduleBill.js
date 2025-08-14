@@ -13,7 +13,7 @@ const ScheduleBill = () => {
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState({});
+  // const [selectedProducts, setSelectedProducts] = useState({});
   // Summary input values
   // Basic fields
   const [costDetails, setCostDetails] = useState({
@@ -38,6 +38,41 @@ const ScheduleBill = () => {
       try {
         if (scheduleId) {
           const schedule = await getScheduleById(scheduleId);
+          console.log("schedule ", schedule);
+          if (schedule && Array.isArray(schedule.weeks)) {
+            // Merge all products from all weeks
+            const allProducts = schedule.weeks.flatMap((week) => week.products || []);
+
+            // Group products by name and category
+            const groupedProducts = allProducts.reduce((acc, product) => {
+              const key = product.name + "_" + product.category;
+
+              if (!acc[key]) {
+                acc[key] = {
+                  ...product,
+                  times: 0,
+                  totalMl: 0,
+                  ltrKg: 0,
+                };
+              }
+
+              acc[key].times += 1;
+
+              // Extract ml and kg from "5000 ml/g & 5.000 l/kg"
+              const matchMl = product.quantity.match(/([\d.]+)\s*ml\/g/i);
+              const matchKg = product.quantity.match(/([\d.]+)\s*l\/kg/i);
+
+              if (matchMl) acc[key].totalMl += parseFloat(matchMl[1]);
+              if (matchKg) acc[key].ltrKg += parseFloat(matchKg[1]);
+
+              return acc;
+            }, {});
+
+            // Convert to array for table rendering
+            const tableData = Object.values(groupedProducts);
+
+            setProductList(tableData);
+          }
           if (schedule) {
             setCropName(schedule.cropId.name);
             setCropId(schedule.cropId._id);
@@ -53,29 +88,28 @@ const ScheduleBill = () => {
       } catch (err) {
         console.error("Error fetching/creating bill:", err);
       }
-      const products = await getProductList();
-      setProductList(products);
+
       setProducts(products);
       setLoading(false);
     };
     fetchOrCreateBill();
   }, [scheduleId]);
 
-  const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  // const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleProductCheck = (name, pricePerAcre) => {
-    setSelectedProducts((prev) => ({
-      ...prev,
-      [name]: { ...prev[name], enabled: !prev[name]?.enabled, name, totalAmt: pricePerAcre },
-    }));
-  };
+  // const handleProductCheck = (name, pricePerAcre) => {
+  //   setSelectedProducts((prev) => ({
+  //     ...prev,
+  //     [name]: { ...prev[name], enabled: !prev[name]?.enabled, name, totalAmt: pricePerAcre },
+  //   }));
+  // };
 
-  const handleInputChange = (name, field, value) => {
-    setSelectedProducts((prev) => ({
-      ...prev,
-      [name]: { ...prev[name], [field]: value, enabled: true },
-    }));
-  };
+  // const handleInputChange = (name, field, value) => {
+  //   setSelectedProducts((prev) => ({
+  //     ...prev,
+  //     [name]: { ...prev[name], [field]: value, enabled: true },
+  //   }));
+  // };
 
   const handleSaveScheduleBill = async () => {
     const payload = {
@@ -83,23 +117,20 @@ const ScheduleBill = () => {
       cropId,
       cropName,
       billDate: new Date(),
-      items: Object.entries(selectedProducts)
-        .filter(([_, p]) => p.enabled)
-        .map(([_, p]) => ({
-          name: p.name,
-          times: Number(p.times),
-          totalMl: Number(p.totalMl),
-          ltrKg: Number(p.ltrKg),
-          rate: Number(p.rate),
-          totalAmt: Number(p.totalAmt),
-        })),
+      items: Object.entries(productList).map(([_, p]) => ({
+        name: p.name,
+        times: Number(p.times),
+        totalMl: Number(p.totalMl),
+        ltrKg: Number(p.ltrKg),
+        rate: Number(p.rate),
+        totalAmt: Number(p.pricePerAcre * p.times),
+      })),
       additionalInfo: {
         ...costDetails, // all cost fields from the unified object
       },
       createdBy: userId,
     };
 
-    console.log("payload ", payload);
     const res = await createScheduleBill(payload);
 
     if (res.status === 201 || res.status === 200) {
@@ -150,23 +181,23 @@ const ScheduleBill = () => {
     }
   }, [billData]);
 
-  useEffect(() => {
-    if (billData && Array.isArray(billData.items)) {
-      const formatted = {};
-      billData.items.forEach((item) => {
-        formatted[item.name] = {
-          name: item.name || "",
-          enabled: true,
-          times: item.times || "",
-          totalMl: item.totalMl || "",
-          ltrKg: item.ltrKg || "",
-          rate: item.rate || "",
-          totalAmt: item.totalAmt || "",
-        };
-      });
-      setSelectedProducts(formatted);
-    }
-  }, [billData]);
+  // useEffect(() => {
+  //   if (billData && Array.isArray(billData.items)) {
+  //     const formatted = {};
+  //     billData.items.forEach((item) => {
+  //       formatted[item.name] = {
+  //         name: item.name || "",
+  //         enabled: true,
+  //         times: item.times || "",
+  //         totalMl: item.totalMl || "",
+  //         ltrKg: item.ltrKg || "",
+  //         rate: item.rate || "",
+  //         totalAmt: item.totalAmt || "",
+  //       };
+  //     });
+  //     setSelectedProducts(formatted);
+  //   }
+  // }, [billData]);
   const navigate = useNavigate();
 
   if (loading) {
@@ -195,7 +226,7 @@ const ScheduleBill = () => {
               <table className="table-auto w-full text-sm text-green-900">
                 <thead className="bg-green-100 sticky top-0 z-10">
                   <tr>
-                    <th className="border p-2">निवडा</th>
+                    {/* <th className="border p-2">निवडा</th> */}
                     <th className="border p-2">साहित्य</th>
                     <th className="border p-2">वेळा</th>
                     <th className="border p-2">कुल Ml</th>
@@ -205,18 +236,15 @@ const ScheduleBill = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((product) => {
-                    const selected = selectedProducts[product.name] || {};
+                  {productList.map((product) => {
                     return (
                       <tr key={product.name} className="hover:bg-green-50">
-                        <td className="border p-1 text-center">
-                          <input type="checkbox" checked={!!selected.enabled} onChange={() => handleProductCheck(product.name, product.pricePerAcre)} />
-                        </td>
                         <td className="border p-1 ">{product.name}</td>
-                        <td className="border p-1 text-center">{selected.times}</td>
-                        <td className="border p-1 text-center">{selected.totalMl}</td>
-                        <td className="border p-1 text-center">{selected.ltrKg}</td>
-                        {["rate"].map((field) => (
+                        <td className="border p-1 text-center">{product.times}</td>
+                        <td className="border p-1 text-center">{product.totalMl}</td>
+                        <td className="border p-1 text-center">{product.ltrKg}</td>
+                        <td className="border p-1 text-center">{product.rate}</td>
+                        {/* {["rate"].map((field) => (
                           <td className="border p-1 text-center" key={field}>
                             <input
                               type="number"
@@ -227,9 +255,9 @@ const ScheduleBill = () => {
                               onChange={(e) => handleInputChange(product.name, field, e.target.value)}
                             />
                           </td>
-                        ))}
+                        ))} */}
 
-                        <td className="border p-1 text-center">₹{product.pricePerAcre}</td>
+                        <td className="border p-1 text-center">₹{product.pricePerAcre * product.times}</td>
                       </tr>
                     );
                   })}
@@ -283,9 +311,9 @@ const ScheduleBill = () => {
                         type="number"
                         name={`${group.prefix}.${key}`}
                         className="border px-2 py-1 rounded flex-1"
-                        value={costDetails[group.prefix]?.[key] || 0}
+                        value={costDetails[group.prefix]?.[key]}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
+                          const value = parseFloat(e.target.value);
                           setCostDetails((prev) => ({
                             ...prev,
                             [group.prefix]: {

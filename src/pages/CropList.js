@@ -162,7 +162,8 @@ function CropList() {
 
       const acreValue = acreValues[cropId]; // not acreValues.cropId
       const acres = Number(acreValue);
-      console.log("acreValues ", acres);
+
+      const allProducts = (schedule.weeks || []).flatMap((week) => week.products || []);
 
       const updatedWeeks = schedule.weeks.map((week) => ({
         ...week,
@@ -178,12 +179,15 @@ function CropList() {
 
           const l = parseFloat(lPart?.split(" ")[0]) || 0;
           const lUnit = lPart?.split(" ")[1] || "l/kg";
-
+          const repeatCount = allProducts.filter((p) => p.name === prod.name).length;
           return {
             name: prod.name,
             quantity: `${(ml * acres).toFixed(2)} ${mlUnit} & ${(l * acres).toFixed(3)} ${lUnit}`,
             perLitreMix: prod.perLitreMix,
-            price: (Number(prod.pricePerAcre || 0) * acres).toFixed(2), // 💰 price calculation
+            price: Number(prod.pricePerAcre * acres * repeatCount).toFixed(2), // 💰 price calculation
+            instruction: prod.instruction,
+            category: prod.category,
+            rate: prod.rate,
           };
         }),
       }));
@@ -196,7 +200,9 @@ function CropList() {
         farmerInfo: farmerData, // 👈 save farmer info here
         scheduleId: selectedScheduleId,
       };
+      console.log("quotationPayload ", quotationPayload);
 
+      // const res = 1;
       const res = await createQuotation(quotationPayload);
       toast.success("Quotation created successfully");
       setLoading(false);

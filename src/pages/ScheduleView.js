@@ -102,7 +102,45 @@ const ScheduleView = () => {
                       ))}
                     </ul>
                   </td>
-                  <td className="border p-2 text-left text-green-900 text-sm" dangerouslySetInnerHTML={{ __html: week.instructions }}></td>
+                  <td className="border p-2 text-left text-green-900 text-sm">
+                    <div className="inline-flex  flex-wrap items-center gap-1">
+                      {(week.products || [])
+                        .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
+                        .map((prod, i, arr) => (
+                          <span key={i} className="text-xs sm:text-sm font-bold">
+                            {prod.quantity} {prod.name}
+                            {i < arr.length - 1 && " और "}
+                          </span>
+                        ))}
+
+                      <span dangerouslySetInnerHTML={{ __html: week.instructions }} className="text-xs sm:text-sm" />
+
+                      {(week.products || [])
+                        .filter((prod) => prod.category === "खेत पर पत्तों से धुवा")
+                        .map((prod, i, arr) => {
+                          let kgValue = "";
+
+                          // Example quantity: "500 ml/g & 0.500 l/kg"
+                          const mlPart = prod.quantity.split("&")[0].trim(); // take first part (ml/g)
+                          const num = parseFloat(mlPart);
+
+                          if (!isNaN(num)) {
+                            // Convert ml → kg (assuming 1 ml = 1 g, so 1000 g = 1 kg)
+                            kgValue = (num / 1000).toFixed(3) + " KG";
+                          }
+
+                          return (
+                            <span key={i} className="text-xs sm:text-sm">
+                              {arr.length > 1 && i > 0 && " और "}
+                              <span className="font-bold">
+                                {kgValue} {prod.name}
+                              </span>{" "}
+                              धुवा करना
+                            </span>
+                          );
+                        })}
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
