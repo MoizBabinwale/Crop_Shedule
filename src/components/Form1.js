@@ -16,6 +16,7 @@ const Form1 = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [weekForms, setWeekForms] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalPlants, setTotalPlants] = useState(0);
 
   const queryParams = new URLSearchParams(location.search);
   const name = queryParams.get("name");
@@ -137,6 +138,7 @@ const Form1 = () => {
     // Convert weekForms into a single schedule object with weeks array
     const scheduleData = {
       cropId,
+      totalPlants: Number(totalPlants),
       weeks: weekForms.map((week) => {
         const selected = Object.entries(week.products).map(([id, data]) => {
           const product = products.find((p) => p._id === id);
@@ -246,6 +248,11 @@ const Form1 = () => {
         setWeekForms(formattedWeeks);
         setIsBillReady(true);
         setScheduleId(res._id);
+        console.log("res data ", res);
+
+        if (res.totalPlants) {
+          setTotalPlants(Number(res.totalPlants));
+        }
       } else {
         // If no schedule exists, initialize empty weekForms
         setWeekForms(
@@ -273,6 +280,7 @@ const Form1 = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
+    console.log("Navigating to", `/schedule/${cropId}`);
     navigate(`/schedule/${cropId}`);
   };
 
@@ -297,9 +305,24 @@ const Form1 = () => {
               <p className="mb-2">
                 <span className="font-semibold text-green-700">📅 एकूण आठवडे:</span> {weeks}
               </p>
+              <p className="mb-2">
+                <span className="font-semibold text-green-700">📅 एकूण एकड :</span> 1
+              </p>
               <p>
                 <span className="font-semibold text-green-700"> 🧾शेड्यूल बिल:</span> {isBillReady ? <>तयार आहे</> : <>तयार नाही</>}
               </p>
+              <div className="mt-3">
+                <label>Total Plants (7 Feet x5 Feet)</label>
+                <input
+                  type="number"
+                  value={totalPlants}
+                  onChange={(e) => {
+                    setTotalPlants(e.target.value);
+                  }}
+                  placeholder="Enter Total Plants"
+                  className="w-full border border-green-300 text-green-800 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -326,7 +349,6 @@ const Form1 = () => {
                         {/* Other Input Fields */}
                         {[
                           { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", placeholder: "जैसे: 500" },
-                          { name: "totalAcres", label: "कुल एकड़", placeholder: "जैसे: 2" },
                           { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 500" },
                           { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5 वें दिन से" },
                         ].map((field, i) => (
@@ -335,9 +357,13 @@ const Form1 = () => {
                             <input
                               type="text"
                               value={week[field.name]}
-                              onChange={(e) => handleWeekFormChange(index, field.name, e.target.value)}
+                              onChange={(e) => {
+                                handleWeekFormChange(index, field.name, e.target.value);
+                                // }
+                              }}
                               placeholder={field.placeholder}
                               className="w-full border border-green-300 text-green-800 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
+                              // readOnly={field.name === "totalAcres"} // 🔒 Lock the field
                             />
                           </div>
                         ))}

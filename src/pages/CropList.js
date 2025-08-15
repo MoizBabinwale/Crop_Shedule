@@ -56,7 +56,6 @@ function CropList() {
           return { ...crop, hasBill: false };
         })
       );
-      console.log("cropsWithBillStatus ", cropsWithBillStatus);
 
       setCropList(cropsWithBillStatus);
       setLoading(false);
@@ -296,8 +295,8 @@ function CropList() {
                   <button
                     onClick={() => {
                       const acres = parseFloat(acreValues[crop._id]);
-                      if (!acres || acres <= 1) {
-                        toast.warning("कृपया 1 पेक्षा जास्त एकर प्रविष्ट करा!", {
+                      if (!acres || acres <= 0) {
+                        toast.warning("कृपया 0 पेक्षा जास्त एकर प्रविष्ट करा!", {
                           position: "top-center",
                           autoClose: 3000,
                           hideProgressBar: false,

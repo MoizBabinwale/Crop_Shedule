@@ -27,10 +27,12 @@ const ScheduleBill = () => {
     fieldInputPrepCost: {},
     smokeCost: {},
   });
+
   // You can leave userId empty for now
   const [userId, setUserId] = useState("demo_user");
   const [cropId, setCropId] = useState("");
   const [cropName, setCropName] = useState("");
+  const [scheduleData, setScheduleData] = useState({});
 
   useEffect(() => {
     const fetchOrCreateBill = async () => {
@@ -74,6 +76,7 @@ const ScheduleBill = () => {
             setProductList(tableData);
           }
           if (schedule) {
+            setScheduleData(schedule);
             setCropName(schedule.cropId.name);
             setCropId(schedule.cropId._id);
           }
@@ -94,22 +97,6 @@ const ScheduleBill = () => {
     };
     fetchOrCreateBill();
   }, [scheduleId]);
-
-  // const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  // const handleProductCheck = (name, pricePerAcre) => {
-  //   setSelectedProducts((prev) => ({
-  //     ...prev,
-  //     [name]: { ...prev[name], enabled: !prev[name]?.enabled, name, totalAmt: pricePerAcre },
-  //   }));
-  // };
-
-  // const handleInputChange = (name, field, value) => {
-  //   setSelectedProducts((prev) => ({
-  //     ...prev,
-  //     [name]: { ...prev[name], [field]: value, enabled: true },
-  //   }));
-  // };
 
   const handleSaveScheduleBill = async () => {
     const payload = {
@@ -161,24 +148,22 @@ const ScheduleBill = () => {
   }, [scheduleId]);
 
   useEffect(() => {
-    if (billData && billData.additionalInfo) {
-      const info = billData.additionalInfo;
-
-      setCostDetails({
-        totalPlants: info.totalPlants || 0,
-        totalAcres: info.totalAcres || 0,
-        totalGuntha: info.totalGuntha || 0,
-        totalCost: info.totalCost || 0,
-        perPlantCost: info.perPlantCost || 0,
-        leafProductCost: info.leafProductCost || {},
-        bioControlCost: info.bioControlCost || {},
-        fieldInputPrepCost: info.fieldInputPrepCost || {},
-        smokeCost: info.smokeCost || {},
-      });
-
-      setCropId(billData.cropId || "");
-      setCropName(billData.cropName || "");
-    }
+    // if (billData && billData.additionalInfo) {
+    //   const info = billData.additionalInfo;
+    //   setCostDetails({
+    //     totalPlants: info.totalPlants || 0,
+    //     totalAcres: info.totalAcres || 0,
+    //     totalGuntha: info.totalGuntha || 0,
+    //     totalCost: info.totalCost || 0,
+    //     perPlantCost: info.perPlantCost || 0,
+    //     leafProductCost: info.leafProductCost || {},
+    //     bioControlCost: info.bioControlCost || {},
+    //     fieldInputPrepCost: info.fieldInputPrepCost || {},
+    //     smokeCost: info.smokeCost || {},
+    //   });
+    //   setCropId(billData.cropId || "");
+    //   setCropName(billData.cropName || "");
+    // }
   }, [billData]);
 
   // useEffect(() => {
@@ -199,6 +184,82 @@ const ScheduleBill = () => {
   //   }
   // }, [billData]);
   const navigate = useNavigate();
+
+  // Calculate all values whenever schedule or productList changes
+  useEffect(() => {
+    if (!scheduleData || !productList) return;
+
+    const totalAcres = 1; // always 1
+    const totalPlantswithHector = scheduleData.totalPlants * totalAcres;
+    const totalPlants = scheduleData.totalPlants;
+    const totalGuntha = totalAcres * 40;
+
+    const totalCost = productList.reduce((sum, product) => sum + (product.pricePerAcre * product.times || 0), 0);
+
+    const perPlantCost = totalPlants > 0 ? totalCost / totalPlants : 0;
+
+    const allProducts = (scheduleData.weeks ?? []).flatMap((week) => week.products || []);
+
+    // 2️⃣ Helper to calculate group cost
+    const calculateGroupCost = (category) => {
+      const groupProducts = allProducts.filter((p) => p.category === category);
+
+      const totalRs = groupProducts.reduce((sum, p) => {
+        const times = p.times || 1;
+        return sum + (parseFloat(p.pricePerAcre) || 0) * times;
+      }, 0);
+
+      const perGuntha = totalRs / totalGuntha;
+      const perAcre = perGuntha * 40;
+      const perBigha = perGuntha * 24;
+      const perHectare = perGuntha * 100;
+
+      return {
+        totalRs: Number(totalRs.toFixed(1)),
+        perGuntha: Number(perGuntha.toFixed(1)),
+        perAcre: Number(perAcre.toFixed(1)),
+        perBigha: Number(perBigha.toFixed(1)),
+        perHectare: Number(perHectare.toFixed(1)),
+      };
+    };
+
+    // 3️⃣ Build final cost details in ONE setCostDetails call
+    setCostDetails({
+      totalPlants,
+      totalAcres,
+      totalPlantswithHector,
+      totalGuntha,
+      totalCost,
+      perPlantCost,
+      leafProductCost: calculateGroupCost("पर्णनेत्र आयुर्वेदिक एग्रो इनपुट्स"),
+      bioControlCost: calculateGroupCost("जैव नियंत्रण उत्पाद"),
+      fieldInputPrepCost: calculateGroupCost("खेत पर इनपुट"),
+      smokeCost: calculateGroupCost("खेत पर पत्तों से धुवा"),
+    });
+  }, [scheduleData, productList]);
+
+  // SummaryField Component
+  const SummaryField = ({ label, value }) => (
+    <div className="bg-green-50 p-2 rounded border border-green-200">
+      <div className="text-xs text-green-600">
+        {label} :- <span className="text-sm font-semibold">{value}</span>
+      </div>
+    </div>
+  );
+
+  // GroupedCost Component
+  const GroupedCost = ({ title, data }) => (
+    <div className="mt-4">
+      <h3 className="text-green-600 font-semibold">{title}</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1 text-sm">
+        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹ ${data?.perHectare || 0}`} />
+        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹ ${data?.perAcre || 0}`} />
+        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹ ${data?.perBigha || 0}`} />
+        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹ ${data?.perGuntha || 0}`} />
+        <SummaryField label="एकूण ₹" value={`₹ ${data?.totalRs || 0}`} />
+      </div>
+    </div>
+  );
 
   if (loading) {
     return <Loading />;
@@ -244,18 +305,6 @@ const ScheduleBill = () => {
                         <td className="border p-1 text-center">{product.totalMl}</td>
                         <td className="border p-1 text-center">{product.ltrKg}</td>
                         <td className="border p-1 text-center">{product.rate}</td>
-                        {/* {["rate"].map((field) => (
-                          <td className="border p-1 text-center" key={field}>
-                            <input
-                              type="number"
-                              placeholder={field}
-                              className="w-20 px-1 py-1 border border-green-300 rounded text-xs"
-                              disabled={!selected.enabled}
-                              value={selected[field] || ""}
-                              onChange={(e) => handleInputChange(product.name, field, e.target.value)}
-                            />
-                          </td>
-                        ))} */}
 
                         <td className="border p-1 text-center">₹{product.pricePerAcre * product.times}</td>
                       </tr>
@@ -272,62 +321,32 @@ const ScheduleBill = () => {
           <div>
             <h3 className="text-xl text-green-800 font-bold mb-4">💰 खर्च तपशील</h3>
 
-            {/* Total Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-              {[
-                { label: "Total Plants", key: "totalPlants" },
-                { label: "Total Acres", key: "totalAcres" },
-                { label: "Total Guntha", key: "totalGuntha" },
-                { label: "Total Cost", key: "totalCost" },
-                { label: "Per Plant Cost", key: "perPlantCost" },
-              ].map(({ label, key }) => (
-                <div key={key} className="flex flex-row items-center text-sm gap-2">
-                  <label className="w-32">{label}</label>
-                  <input
-                    type="number"
-                    name={key}
-                    className="border px-2 py-1 rounded flex-1"
-                    value={costDetails[key] || 0}
-                    onChange={(e) => setCostDetails({ ...costDetails, [key]: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Cost Groups */}
-            {[
-              { title: "🌿 पर्णनेत्र उत्पादन खर्च", prefix: "leafProductCost" },
-              { title: "🧫 जैव नियंत्रण उत्पादन खर्च", prefix: "bioControlCost" },
-              { title: "🧪 शेत इनपुट तयार करण्याचा खर्च", prefix: "fieldInputPrepCost" },
-              { title: "🌫️ धुराचे साहित्य खर्च", prefix: "smokeCost" },
-            ].map((group) => (
-              <div key={group.prefix} className="space-y-2 mb-4">
-                <h3 className="font-semibold text-green-700">{group.title}</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {["totalRs", "perHectare", "perAcre", "perBigha", "perGuntha"].map((key) => (
-                    <div key={key} className="flex flex-row items-center text-sm gap-2">
-                      <label className="w-32">{key.replace(/([A-Z])/g, " $1")}</label>
-                      <input
-                        type="number"
-                        name={`${group.prefix}.${key}`}
-                        className="border px-2 py-1 rounded flex-1"
-                        value={costDetails[group.prefix]?.[key]}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value);
-                          setCostDetails((prev) => ({
-                            ...prev,
-                            [group.prefix]: {
-                              ...prev[group.prefix],
-                              [key]: value,
-                            },
-                          }));
-                        }}
-                      />
-                    </div>
-                  ))}
+            {/* Total Stats & Grouped Costs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+              {/* Left Card - Total Stats */}
+              <div className="bg-white rounded-xl shadow-md p-5 border border-green-200 flex flex-col ">
+                <h2 className="text-lg font-semibold text-green-700 mb-4">📊 कुल सारांश</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-green-800">
+                  <SummaryField label="Total Plants (7x5 ft)" value={scheduleData.totalPlants || 0} />
+                  <SummaryField label="Total Acres" value={costDetails.totalAcres || 0} />
+                  <SummaryField label="Total Plants" value={costDetails.totalPlantswithHector || 0} />
+                  <SummaryField label="Total Guntha" value={costDetails.totalGuntha || 0} />
+                  <SummaryField label="Total Cost" value={`₹ ${costDetails.totalCost || 0}`} />
+                  <SummaryField label="Per Plant Cost" value={`₹ ${costDetails.perPlantCost || 0}`} />
                 </div>
               </div>
-            ))}
+
+              {/* Right Card - Grouped Costs */}
+              <div className="bg-white rounded-xl shadow-md p-5 border border-green-200 flex flex-col justify-between">
+                <h2 className="text-lg font-semibold text-green-700 mb-4">💰 लागत विवरण</h2>
+                <div className="grid grid-cols-1 gap-3">
+                  <GroupedCost title="🌿 पर्णनेत्र उत्पादों की लागत" data={costDetails.leafProductCost} />
+                  <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={costDetails.bioControlCost} />
+                  <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={costDetails.fieldInputPrepCost} />
+                  <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={costDetails.smokeCost} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
