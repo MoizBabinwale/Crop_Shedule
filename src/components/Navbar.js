@@ -28,7 +28,7 @@ const Navbar = () => {
             <div className="text-white">
               <Link to={"/"}>
                 <div className="text-lg md:text-xl font-bold leading-tight">
-                  <span className="text-red-600">Parnanetra</span> Ayurvedic Agro System
+                  <span className="text-white-600">Parnanetra</span> Ayurvedic Agro System
                 </div>
                 <div className="text-sm italic text-[#FFD580]">... since 1988</div>
               </Link>

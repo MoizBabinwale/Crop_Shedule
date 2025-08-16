@@ -30,14 +30,12 @@ const Form1 = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     fetchProducts();
-  }, [weeks]);
+  }, []);
 
   const fetchProducts = async () => {
     const data = await getProductList();
     if (data) {
       setProducts(data);
-      console.log("data ", data);
-
       setProductsLoaded(true);
     }
   };
@@ -46,23 +44,39 @@ const Form1 = () => {
   const handleWeekFormChange = (index, field, value) => {
     const updatedWeeks = [...weekForms];
 
-    // If the date of week 1 changes, auto-fill all weeks
     if (field === "date" && index === 0) {
       const startDate = new Date(value);
 
       updatedWeeks.forEach((week, i) => {
         const newDate = new Date(startDate);
-        newDate.setDate(startDate.getDate() + i * 7); // 7 days gap for each week
-        week.date = newDate.toISOString().split("T")[0]; // Format YYYY-MM-DD
+        newDate.setDate(startDate.getDate() + i * 7); // Week gap
+        week.date = newDate.toISOString().split("T")[0];
+
+        // Calculate day difference from start
+        if (i === 0) {
+          week.useStartDay = "आरंभ दिवस";
+        } else {
+          const diffDays = Math.floor((newDate - startDate) / (1000 * 60 * 60 * 24));
+          week.useStartDay = `${diffDays} वा दिन`;
+        }
       });
     } else {
       updatedWeeks[index][field] = value;
+
+      // If date of another week changes, update its useStartDay
+      if (field === "date" && index !== 0) {
+        const startDate = new Date(updatedWeeks[0].date);
+        const currentDate = new Date(value);
+        const diffDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+
+        updatedWeeks[index].useStartDay = diffDays === 0 ? "आरंभ दिवस" : `${diffDays} वा दिन`;
+      }
     }
 
     setWeekForms(updatedWeeks);
   };
 
-  const handleQuantityChange = (weekIndex, productId, field, value) => {
+  const handleQuantityChange = (weekIndex, productId, field, value, category, totalWater) => {
     const numericValue = parseFloat(value);
 
     setWeekForms((prev) =>
@@ -71,13 +85,20 @@ const Form1 = () => {
 
         let ml = week.products?.[productId]?.ml || "";
         let l = week.products?.[productId]?.l || "";
+        let perLitreMix = week.products?.[productId]?.perLitreMix || "";
 
         if (field === "ml") {
           ml = value;
           l = value ? (numericValue / 1000).toFixed(3) : "";
+          if (category !== "खेत पर पत्तों से धुवा" && totalWater) {
+            perLitreMix = value ? (numericValue / totalWater).toFixed(2) : "";
+          }
         } else if (field === "l") {
           l = value;
           ml = value ? (numericValue * 1000).toFixed(0) : "";
+          if (category !== "खेत पर पत्तों से धुवा" && totalWater) {
+            perLitreMix = value ? ((numericValue * 1000) / totalWater).toFixed(2) : "";
+          }
         }
 
         return {
@@ -88,6 +109,7 @@ const Form1 = () => {
               ...week.products?.[productId],
               ml,
               l,
+              perLitreMix,
             },
           },
         };
@@ -95,10 +117,20 @@ const Form1 = () => {
     );
   };
 
-  const handlePerLitreChange = (weekIndex, productId, value) => {
+  const handlePerLitreChange = (weekIndex, productId, value, category, totalWater) => {
+    const numericValue = parseFloat(value);
+
     setWeekForms((prev) =>
       prev.map((week, idx) => {
         if (idx !== weekIndex) return week;
+
+        let ml = week.products?.[productId]?.ml || "";
+        let l = week.products?.[productId]?.l || "";
+
+        if (category !== "खेत पर पत्तों से धुवा" && totalWater && !isNaN(numericValue)) {
+          ml = (numericValue * totalWater).toFixed(0);
+          l = ((numericValue * totalWater) / 1000).toFixed(3);
+        }
 
         return {
           ...week,
@@ -107,6 +139,8 @@ const Form1 = () => {
             [productId]: {
               ...week.products?.[productId],
               perLitreMix: value,
+              ml,
+              l,
             },
           },
         };
@@ -144,7 +178,7 @@ const Form1 = () => {
           const product = products.find((p) => p._id === id);
           return {
             name: product?.name || "Unknown",
-            quantity: `${data.ml || 0} ml/g & ${data.l || 0} l/kg`,
+            quantity: `${data.ml || 0} ml/grm & ${data.l || 0} ltr/kg`,
             perLitreMix: data?.perLitreMix || 0,
             instruction: product?.instruction || "",
             category: product?.category,
@@ -209,7 +243,7 @@ const Form1 = () => {
     if (cropId && productsLoaded) {
       fetchSchedule();
     }
-  }, [cropId, productsLoaded, products, weeks]);
+  }, [cropId, productsLoaded]);
   const fetchSchedule = async () => {
     try {
       setLoading(true);
@@ -248,7 +282,6 @@ const Form1 = () => {
         setWeekForms(formattedWeeks);
         setIsBillReady(true);
         setScheduleId(res._id);
-        console.log("res data ", res);
 
         if (res.totalPlants) {
           setTotalPlants(Number(res.totalPlants));
@@ -350,7 +383,7 @@ const Form1 = () => {
                         {[
                           { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", placeholder: "जैसे: 500" },
                           { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 500" },
-                          { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5 वें दिन से" },
+                          // { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5 वें दिन से" },
                         ].map((field, i) => (
                           <div key={i} className="grid gap-3 items-center">
                             <label className="text-green-700 font-medium">{field.label}:</label>
@@ -367,6 +400,10 @@ const Form1 = () => {
                             />
                           </div>
                         ))}
+                        <div className="grid gap-3 items-center">
+                          <label className="block text-green-700 font-medium mt-2">दिवस:</label>
+                          <p className="text-sm text-green-900 font-semibold">{week.useStartDay || ""}</p>
+                        </div>
                       </div>
 
                       <h2 className="text-base font-semibold text-green-700 mt-4">🌿 उत्पाद विवरण - Product Details</h2>
@@ -391,7 +428,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.ml || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "ml", e.target.value)}
+                                      onChange={(e) => handleQuantityChange(index, product._id, "ml", e.target.value, product.category, week.totalWater)}
                                     />
                                     <input
                                       type="number"
@@ -399,7 +436,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.l || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "l", e.target.value)}
+                                      onChange={(e) => handleQuantityChange(index, product._id, "l", e.target.value, product.category, week.totalWater)}
                                     />
                                     <input
                                       type="number"
@@ -407,7 +444,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-28 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.perLitreMix || ""}
-                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value)}
+                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.totalWater)}
                                     />
                                   </div>
                                 </div>
@@ -423,7 +460,7 @@ const Form1 = () => {
                               const productName = products.find((p) => p._id === id)?.name || "Unknown";
                               return (
                                 <li key={id}>
-                                  {productName}: {data.ml || 0} ml/g & {data.l || 0} l/kg प्रती लिटर पानी मे - {data.perLitreMix}
+                                  {productName}: {data.ml || 0} ml/grm & {data.l || 0} ltr/kg प्रती लिटर पानी मे - {data.perLitreMix}
                                 </li>
                               );
                             })}

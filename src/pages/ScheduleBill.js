@@ -60,7 +60,7 @@ const ScheduleBill = () => {
 
               acc[key].times += 1;
 
-              // Extract ml and kg from "5000 ml/g & 5.000 l/kg"
+              // Extract ml and kg from "5000 ml/grm & 5.000 ltr/kg"
               const matchMl = product.quantity.match(/([\d.]+)\s*ml\/g/i);
               const matchKg = product.quantity.match(/([\d.]+)\s*l\/kg/i);
 
@@ -239,24 +239,38 @@ const ScheduleBill = () => {
   }, [scheduleData, productList]);
 
   // SummaryField Component
-  const SummaryField = ({ label, value }) => (
-    <div className="bg-green-50 p-2 rounded border border-green-200">
-      <div className="text-xs text-green-600">
-        {label} :- <span className="text-sm font-semibold">{value}</span>
+  const SummaryField = ({ label, value }) => {
+    // Extract numeric part if string contains ₹
+    let displayValue = value;
+
+    if (typeof value === "string" && value.includes("₹")) {
+      const num = parseFloat(value.replace(/[^0-9.]/g, "")); // get only numbers
+      if (!isNaN(num)) {
+        displayValue = `₹${num.toFixed(2)}`;
+      }
+    } else if (typeof value === "number" && !isNaN(value)) {
+      displayValue = value.toFixed(2);
+    }
+
+    return (
+      <div className="bg-green-50 p-2 rounded border border-green-200">
+        <div className="text-xs text-green-600">
+          {label} :- <span className="text-sm font-semibold">{displayValue}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // GroupedCost Component
   const GroupedCost = ({ title, data }) => (
     <div className="mt-4">
       <h3 className="text-green-600 font-semibold">{title}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1 text-sm">
-        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹ ${data?.perHectare || 0}`} />
-        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹ ${data?.perAcre || 0}`} />
-        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹ ${data?.perBigha || 0}`} />
-        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹ ${data?.perGuntha || 0}`} />
-        <SummaryField label="एकूण ₹" value={`₹ ${data?.totalRs || 0}`} />
+        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹${data?.perHectare || 0}`} />
+        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹${data?.perAcre || 0}`} />
+        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹${data?.perBigha || 0}`} />
+        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹${data?.perGuntha || 0}`} />
+        <SummaryField label="एकूण ₹" value={`₹${data?.totalRs || 0}`} />
       </div>
     </div>
   );
@@ -306,7 +320,7 @@ const ScheduleBill = () => {
                         <td className="border p-1 text-center">{product.ltrKg}</td>
                         <td className="border p-1 text-center">{product.rate}</td>
 
-                        <td className="border p-1 text-center">₹{product.pricePerAcre * product.times}</td>
+                        <td className="border p-1 text-center">₹{product.totalMl * product.rate}</td>
                       </tr>
                     );
                   })}
@@ -331,8 +345,8 @@ const ScheduleBill = () => {
                   <SummaryField label="Total Acres" value={costDetails.totalAcres || 0} />
                   <SummaryField label="Total Plants" value={costDetails.totalPlantswithHector || 0} />
                   <SummaryField label="Total Guntha" value={costDetails.totalGuntha || 0} />
-                  <SummaryField label="Total Cost" value={`₹ ${costDetails.totalCost || 0}`} />
-                  <SummaryField label="Per Plant Cost" value={`₹ ${costDetails.perPlantCost || 0}`} />
+                  <SummaryField label="Total Cost" value={`₹${costDetails.totalCost || 0}`} />
+                  <SummaryField label="Per Plant Cost" value={`₹${costDetails.perPlantCost || 0}`} />
                 </div>
               </div>
 

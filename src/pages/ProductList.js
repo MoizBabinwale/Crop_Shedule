@@ -132,14 +132,14 @@ const ProductList = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-8xl mx-auto px-4 py-8">
       {/* Left Side - Product Management */}
-      <div className="lg:w-2/3">
+      <div className="lg:w-2/3 w-full">
         <div className="bg-green-50 border border-green-300 rounded-2xl shadow-lg p-6">
-          <h2 className="text-3xl font-bold text-green-800 mb-6 text-center flex items-center justify-center gap-2">🌱 उत्पादन यादी (Product List)</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-green-800 mb-6 text-center flex items-center justify-center gap-2">🌱 उत्पादन यादी (Product List)</h2>
 
           {/* Add/Edit Product Form */}
-          <form onSubmit={handleSubmit} className="flex  gap-4 mb-6">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-wrap sm:flex-row gap-4 mb-6">
             {/* उत्पादनाचे नाव */}
-            <div className="flex flex-col w-full sm:w-1/2">
+            <div className="flex flex-col w-full sm:w-[48%]">
               <label className="mb-1 text-green-800 font-medium text-sm">उत्पादनाचे नाव</label>
               <input
                 type="text"
@@ -152,11 +152,11 @@ const ProductList = () => {
             </div>
 
             {/* किंमत (१ एकरासाठी) */}
-            <div className="flex flex-col w-full sm:w-1/2">
-              <label className="mb-1 text-green-800 font-medium text-sm">किंमत (१ एकरासाठी)</label>
+            <div className="flex flex-col w-full sm:w-[48%]">
+              <label className="mb-1 text-green-800 font-medium text-sm">कुल Ml</label>
               <input
                 type="number"
-                placeholder="किंमत (१ एकरासाठी)"
+                placeholder="(कुल Ml)"
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                 value={productPrice}
                 onChange={(e) => setProductPrice(e.target.value)}
@@ -166,8 +166,8 @@ const ProductList = () => {
             </div>
 
             {/* दर (१ एकरासाठी) */}
-            <div className="flex flex-col w-full sm:w-1/2">
-              <label className="mb-1 text-green-800 font-medium text-sm">दर (१ एकरासाठी)</label>
+            <div className="flex flex-col w-full sm:w-[48%]">
+              <label className="mb-1 text-green-800 font-medium text-sm">दर (ml)</label>
               <input
                 type="number"
                 placeholder="उदा. 4.5"
@@ -180,7 +180,7 @@ const ProductList = () => {
             </div>
 
             {/* उत्पादन श्रेणी */}
-            <div className="flex flex-col w-full sm:w-1/2">
+            <div className="flex flex-col w-full sm:w-[48%]">
               <label className="mb-1 text-green-800 font-medium text-sm">उत्पादनाची श्रेणी</label>
               <select
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
@@ -198,7 +198,7 @@ const ProductList = () => {
 
             {/* बटण */}
             <div className="flex w-full justify-end">
-              <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow font-semibold transition">
+              <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow font-semibold transition w-full sm:w-auto">
                 {editingId ? "अपडेट करा" : "जोडा"}
               </button>
             </div>
@@ -217,16 +217,16 @@ const ProductList = () => {
           {loading ? (
             <Loading />
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <div key={product._id} className="bg-white border border-green-200 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
                     {/* Product Info */}
                     <div className="p-3">
                       <h3 className="text-lg font-bold text-green-900">{product.name}</h3>
-                      <spam>{product.category}</spam>
+                      <span className="block text-xs text-gray-600">{product.category}</span>
                       <p className="text-sm text-gray-700">Rate - {product.rate}</p>
-                      <p className="mt-2 text-green-700 font-semibold">₹{product.pricePerAcre} / एकर</p>
+                      <p className="mt-2 text-green-700 font-semibold">कुल Ml - {product.pricePerAcre}</p>
                       {/* Actions */}
                       <div className="flex gap-2 mt-3">
                         <button onClick={() => handleEdit(product)} className="bg-green-100 text-green-800 hover:bg-green-200 p-2 rounded-full shadow" title="Edit">
@@ -248,16 +248,12 @@ const ProductList = () => {
       </div>
 
       {/* Right Side - Krishi Seva Kendra Banner */}
-      <div className="lg:w-1/3 flex flex-col justify-center items-center">
-        <div className="w-full h-full rounded-2xl overflow-hidden shadow-md border border-green-200">
-          <img src={medicine} alt="Krishi Seva Kendra Banner" className="w-full h-full object-cover" />
-        </div>
-        <div className="w-full h-full rounded-2xl overflow-hidden shadow-md border border-green-200">
-          <img src={medicine2} alt="Krishi Seva Kendra Banner" className="w-full h-full object-cover" />
-        </div>
-        <div className="w-full h-full rounded-2xl overflow-hidden shadow-md border border-green-200">
-          <img src={medicine3} alt="Krishi Seva Kendra Banner" className="w-full h-full object-cover" />
-        </div>
+      <div className="lg:w-1/3 w-full flex flex-col gap-4">
+        {[medicine, medicine2, medicine3].map((img, idx) => (
+          <div key={idx} className="w-full rounded-2xl overflow-hidden shadow-md border border-green-200">
+            <img src={img} alt={`Krishi Seva Kendra Banner ${idx + 1}`} className="w-full h-full object-cover" />
+          </div>
+        ))}
       </div>
     </div>
   );

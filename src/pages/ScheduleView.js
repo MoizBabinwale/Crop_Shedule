@@ -15,7 +15,6 @@ const ScheduleView = () => {
         setCropName(cropRes.name);
 
         const scheduleRes = await getSchedulesByCropId(cropId);
-        console.log("scheduleRes ", scheduleRes);
         if (scheduleRes.status === 404) {
           setScheduleNotFoud(true);
         }
@@ -28,6 +27,42 @@ const ScheduleView = () => {
 
     if (cropId) fetchData();
   }, [cropId]);
+
+  // helpers.js (या इसी फाइल में ऊपर define कर सकते हो)
+
+  // Extract mg/ml part from prod.quantity
+  // const getMgValue = (quantity) => {
+  //   if (!quantity) return 0;
+  //   const mlPart = quantity.split("&")[0].trim(); // "200 ml/grm"
+  //   const num = parseFloat(mlPart);
+  //   return isNaN(num) ? 0 : num;
+  // };
+
+  // // Extract litre/kg part from prod.quantity
+  // const getLitreValue = (quantity) => {
+  //   if (!quantity) return 0;
+  //   const parts = quantity.split("&");
+  //   if (parts.length < 2) return 0;
+  //   const ltrPart = parts[1].trim(); // "0.200 ltr/kg"
+  //   const num = parseFloat(ltrPart);
+  //   return isNaN(num) ? 0 : num;
+  // };
+
+  const cleanMgQuantity = (quantity) => {
+    if (!quantity) return "";
+    return quantity
+      .replace(/ml\/grm/gi, "") // remove ml/grm
+      .replace(/ltr\/kg/gi, "") // remove ltr/kg
+      .trim();
+  };
+  const cleanLitQuantity = (quantity) => {
+    if (!quantity) return "";
+    return quantity
+      .replace(/ml\/grm/gi, "") // remove ml/grm
+      .replace(/ltr\/kg/gi, "") // remove ltr/kg
+      .trim();
+  };
+
   if (scheduleNotFoud)
     return (
       <>
@@ -57,53 +92,81 @@ const ScheduleView = () => {
       </div>
 
       {/* Schedule Table for each Week */}
-      <div className="space-y-10 print-area">
-        {weeks.map((week, index) => (
+      <div className="space-y-6 print-area">
+        {weeks?.map((week, index) => (
           <div key={index} className="overflow-x-auto rounded border border-green-300 shadow-md bg-white">
-            <table className="min-w-[1000px] w-full text-xs sm:text-sm text-green-800">
+            <table className="min-w-full w-full text-xs sm:text-sm text-green-800">
               <thead className="bg-green-200 text-green-900 text-center">
                 <tr>
                   <th className="border p-2 w-[60px]">सप्ताह</th>
-                  <th className="border p-2 w-[100px]">तारीख</th>
-                  <th className="border p-2 w-[120px]">प्रति लीटर पानी में मिली</th>
-                  <th className="border p-2 w-[120px]">पानी / एकड़ (लीटर में)</th>
-                  <th className="border p-2 w-[100px]">कुल एकड़</th>
-                  <th className="border p-2 w-[110px]">पानी कुल लीटर</th>
-                  <th className="border p-2 w-[140px]">उत्पादों की मात्रा (मिली/ग्राम)</th>
-                  <th className="border p-2 w-[140px]">उत्पादों की मात्रा (लीटर/किग्रा)</th>
-                  <th className="border p-2 w-[100px]">उपयोग दिन</th>
-                  <th className="border p-2 w-[240px]">उत्पाद</th>
-                  <th className="border p-2 w-[300px]">निर्देश</th>
+                  <th className="border p-2 w-[110px]">तारीख/उपयोग दिन</th>
+                  <th className="border p-2">उत्पाद</th>
+                  <th className="border p-2">प्रति लीटर पानी</th>
+                  <th className="border p-2">पानी/एकड़</th>
+                  <th className="border p-2">कुल एकड़</th>
+                  <th className="border p-2">पानी कुल</th>
+                  <th className="border p-2">उत्पाद (मिली/ग्राम)</th>
+                  <th className="border p-2">उत्पाद (लीटर/किग्रा)</th>
+                  <th className="border p-2 w-[90px]">उपयोग दिन</th>
+                  <th className="border p-2">उत्पाद</th>
+                  <th className="border p-2 max-w-[250px] whitespace-normal text-left">निर्देश</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t text-center">
                   <td className="border p-2 font-semibold">{week.weekNumber}</td>
-                  <td className="border p-2">{new Date(week.date).toLocaleDateString("en-GB")}</td>
-                  <td className="border p-2">{week.perLiter}</td>
+                  <td className="border p-2 whitespace-nowrap">
+                    <span className="underline">{week.date ? new Date(week.date).toLocaleDateString("en-GB") : ""}</span>
+                    <br />
+                    {week.useStartDay ? `${week.useStartDay}` : ""}
+                  </td>
+                  <td className="border p-2">
+                    <ul className="list-disc pl-4 space-y-1 text-left">
+                      {(week.products || []).map((prod, i) => (
+                        <li key={i}>
+                          <span className="font-medium">{prod.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="border p-2 text-left">
+                    {(week.products || []).map((prod, i) =>
+                      prod.perLitreMix ? (
+                        <div key={i} className="text-green-800">
+                          {prod.name}: <span className="text-blue-700 font-medium">{prod.perLitreMix}</span>
+                        </div>
+                      ) : null
+                    )}
+                  </td>
                   <td className="border p-2">{week.waterPerAcre}</td>
                   <td className="border p-2">{week.totalAcres}</td>
                   <td className="border p-2">{week.totalWater}</td>
-                  <td className="border p-2">{week.productAmountMg}</td>
-                  <td className="border p-2">{week.productAmountLtr}</td>
-                  <td className="border p-2">{week.useStartDay ? `${week.useStartDay} वा दिन` : ""}</td>
+                  <td className="border p-2">
+                    {(week.products || []).map((prod, i) => {
+                      const mgPart = prod.quantity?.split("&")[0]?.trim() || "";
+                      return <div key={i}>{mgPart.replace(/ml\/grm/i, "").trim()} ml/grm</div>;
+                    })}
+                  </td>
+
+                  <td className="border p-2">
+                    {(week.products || []).map((prod, i) => {
+                      const ltrPart = prod.quantity?.split("&")[1]?.trim() || "";
+                      return <div key={i}>{ltrPart.replace(/ltr\/kg/i, "").trim()} ltr/kg</div>;
+                    })}
+                  </td>
+
+                  <td className="border p-2">{week.useStartDay}</td>
                   <td className="border p-2 text-left">
                     <ul className="list-disc list-inside space-y-1">
                       {(week.products || []).map((prod, i) => (
                         <li key={i} className="text-xs sm:text-sm">
                           <span className="text-green-900 font-medium">{prod.name}</span>: <span className="text-orange-600">{prod.quantity}</span>
-                          {prod.perLitreMix && (
-                            <>
-                              <br />
-                              <span className="text-green-800">प्रति लीटर पानी मे मिली:</span> <span className="text-blue-700 font-medium">{prod?.perLitreMix}</span>
-                            </>
-                          )}
                         </li>
                       ))}
                     </ul>
                   </td>
-                  <td className="border p-2 text-left text-green-900 text-sm">
-                    <div className="inline-flex  flex-wrap items-center gap-1">
+                  <td className="border p-2 text-left text-green-900 text-sm max-w-[250px] whitespace-normal">
+                    <div className="inline-flex flex-wrap items-center gap-1">
                       {(week.products || [])
                         .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
                         .map((prod, i, arr) => (
@@ -119,13 +182,9 @@ const ScheduleView = () => {
                         .filter((prod) => prod.category === "खेत पर पत्तों से धुवा")
                         .map((prod, i, arr) => {
                           let kgValue = "";
-
-                          // Example quantity: "500 ml/g & 0.500 l/kg"
-                          const mlPart = prod.quantity.split("&")[0].trim(); // take first part (ml/g)
+                          const mlPart = prod.quantity.split("&")[0].trim();
                           const num = parseFloat(mlPart);
-
                           if (!isNaN(num)) {
-                            // Convert ml → kg (assuming 1 ml = 1 g, so 1000 g = 1 kg)
                             kgValue = (num / 1000).toFixed(3) + " KG";
                           }
 

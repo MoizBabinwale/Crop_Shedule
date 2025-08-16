@@ -174,10 +174,10 @@ function CropList() {
           const [mlPart, lPart] = (prod.quantity || "").split("&").map((q) => q.trim());
 
           const ml = parseFloat(mlPart?.split(" ")[0]) || 0;
-          const mlUnit = mlPart?.split(" ")[1] || "ml/g";
+          const mlUnit = mlPart?.split(" ")[1] || "ml/grm";
 
           const l = parseFloat(lPart?.split(" ")[0]) || 0;
-          const lUnit = lPart?.split(" ")[1] || "l/kg";
+          const lUnit = lPart?.split(" ")[1] || "ltr/kg";
           const repeatCount = allProducts.filter((p) => p.name === prod.name).length;
           return {
             name: prod.name,

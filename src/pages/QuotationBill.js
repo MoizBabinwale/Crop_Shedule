@@ -17,25 +17,38 @@ const QuotationBill = () => {
     if (quotationId) fetchBill();
   }, [quotationId]);
 
-  // SummaryField Component
-  const SummaryField = ({ label, value }) => (
-    <div className="bg-green-50 p-2 rounded border border-green-200">
-      <div className="text-xs text-green-600">
-        {label} :- <span className="text-sm font-semibold">{value}</span>
+  const SummaryField = ({ label, value }) => {
+    // Extract numeric part if string contains ₹
+    let displayValue = value;
+
+    if (typeof value === "string" && value.includes("₹")) {
+      const num = parseFloat(value.replace(/[^0-9.]/g, "")); // get only numbers
+      if (!isNaN(num)) {
+        displayValue = `₹${num.toFixed(2)}`;
+      }
+    } else if (typeof value === "number" && !isNaN(value)) {
+      displayValue = value.toFixed(2);
+    }
+
+    return (
+      <div className="bg-green-50 p-2 rounded border border-green-200">
+        <div className="text-xs text-green-600">
+          {label} :- <span className="text-sm font-semibold">{displayValue}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // GroupedCost Component
   const GroupedCost = ({ title, data = {} }) => (
     <div className="mt-4">
       <h3 className="text-green-600 font-semibold">{title}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1 text-sm">
-        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹ ${data.perHectare || 0}`} />
-        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹ ${data.perAcre || 0}`} />
-        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹ ${data.perBigha || 0}`} />
-        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹ ${data.perGuntha || 0}`} />
-        <SummaryField label="एकूण ₹" value={`₹ ${data.totalRs || 0}`} />
+        <SummaryField label="प्रति हेक्टर (100 गुंठा)" value={`₹${data.perHectare || 0}`} />
+        <SummaryField label="प्रति एकर (40 गुंठा)" value={`₹${data.perAcre || 0}`} />
+        <SummaryField label="प्रति बीघा (24 गुंठा)" value={`₹${data.perBigha || 0}`} />
+        <SummaryField label="प्रति गुंठा (1089 Sft)" value={`₹${data.perGuntha || 0}`} />
+        <SummaryField label="एकूण ₹" value={`₹${data.totalRs || 0}`} />
       </div>
     </div>
   );
@@ -113,10 +126,11 @@ const QuotationBill = () => {
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
-                <td className="border px-2 py-1">{item.rate ? `₹ ${item.rate}` : ""}</td>
+
+                <td className="border px-2 py-1">{item.rate ? `₹${item.rate}` : ""}</td>
                 <td className="border px-2 py-1">
                   {item.totalAmt
-                    ? `₹ ${parseFloat(item.totalAmt).toLocaleString("en-IN", {
+                    ? `₹${parseFloat(item.totalMl * item.rate).toLocaleString("en-IN", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}`
@@ -150,8 +164,8 @@ const QuotationBill = () => {
         <SummaryField label="Total Plants (7 Feet x5 Feet)" value={additionalInfo.totalPlants || 0} />
         <SummaryField label="Total Acres" value={additionalInfo.totalAcres || 0} />
         <SummaryField label="Total Guntha" value={additionalInfo.totalGuntha || 0} />
-        <SummaryField label="Total Cost" value={`₹ ${additionalInfo.totalCost || 0}`} />
-        <SummaryField label="Per Plant Cost" value={`₹ ${additionalInfo.perPlantCost || 0}`} />
+        <SummaryField label="Total Cost" value={`₹${additionalInfo.totalCost || 0}`} />
+        <SummaryField label="Per Plant Cost" value={`₹${additionalInfo.perPlantCost || 0}`} />
       </div>
 
       {/* Grouped Cost Sections */}

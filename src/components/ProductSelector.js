@@ -46,14 +46,14 @@ const ProductSelector = ({ products, onSelectionChange }) => {
                 <div className="flex gap-2">
                   <input
                     type="number"
-                    placeholder="ml/g"
+                    placeholder="ml/grm"
                     value={selectedProducts[product._id]?.ml || ""}
                     onChange={(e) => handleQuantityChange(product._id, "ml", e.target.value)}
                     className="w-16 p-1 border rounded"
                   />
                   <input
                     type="number"
-                    placeholder="l/kg"
+                    placeholder="ltr/kg"
                     value={selectedProducts[product._id]?.l || ""}
                     onChange={(e) => handleQuantityChange(product._id, "l", e.target.value)}
                     className="w-16 p-1 border rounded"

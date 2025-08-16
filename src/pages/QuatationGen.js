@@ -42,6 +42,22 @@ const QuatationGen = () => {
     }
   };
 
+  // Utility to replace numbers in the instructions HTML
+  function updateInstructionValues(html, week) {
+    return html.replace(/\b\d+(\.\d+)?\b/g, (match) => {
+      console.log("match ", match);
+      console.log(" quotatation.totalWater ", week.waterPerAcre);
+
+      if (match === week.waterPerAcre) {
+        const num = parseFloat(match);
+        if (!isNaN(num)) {
+          return (num * quotation.acres).toFixed(0); // no decimal, or change to .toFixed(1) if needed
+        }
+        return match;
+      }
+    });
+  }
+
   return (
     <div className="p-4 sm:p-6 md:p-8 print:p-4 print:text-xs">
       {/* Button Actions */}
@@ -85,71 +101,87 @@ const QuatationGen = () => {
 
         {/* Weekly Schedule Tables */}
         {quotation.weeks.map((week, index) => (
-          <div key={index} className="overflow-x-auto mt-6">
-            <table className="w-full border border-gray-400 text-xs print:text-[10px] table-fixed">
+          <div key={index} className="overflow-x-auto print:overflow-visible print:w-full mt-6">
+            <table className="table-auto min-w-max border border-gray-400 text-xs print:text-[10px] w-full">
               <thead className="bg-green-100 text-gray-900">
                 <tr>
-                  <th className="border px-2 py-1 w-[50px]">सप्ताह</th>
-                  <th className="border px-2 py-1 w-[80px]">तारीख</th>
-                  <th className="border px-2 py-1 w-[90px]">प्रति लीटर पानी</th>
-                  <th className="border px-2 py-1 w-[90px]">पानी {quotation.acres} एकड़</th>
-                  <th className="border px-2 py-1 w-[70px]">कुल एकड़</th>
-                  <th className="border px-2 py-1 w-[70px]">पानी कुल</th>
-                  <th className="border px-2 py-1 w-[100px]">आरंभ दिन</th>
-                  <th className="border px-2 py-1 w-[180px]">उत्पाद</th>
-                  <th className="border px-2 py-1 w-[200px]">निर्देश</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">सप्ताह</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">तारीख/उपयोग दिन</th>
+                  <th className="border px-2 py-1">उत्पाद</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">प्रति लीटर पानी मे मिली</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">पानी प्रती एकड़</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">कुल एकड़</th>
+                  <th className="border px-2 py-1 whitespace-nowrap">पानी कुल एकड़</th>
+                  <th className="border px-2 py-1">उत्पाद व मात्रा</th>
+                  <th className="border px-2 py-1">निर्देश</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="align-top">
                   <td className="border px-2 py-1 text-center">{week.weekNumber}</td>
-                  <td className="border px-2 py-1 text-center">{week.date ? new Date(week.date).toLocaleDateString("en-GB") : ""}</td>
-                  <td className="border px-2 py-1 text-center break-words">{Number(week.perLiter) * quotation.acres}</td>
-                  <td className="border px-2 py-1 text-center break-words">{Number(week.waterPerAcre) * quotation.acres}</td>
-                  <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
-                  <td className="border px-2 py-1 text-center">{week.totalWater}</td>
-                  <td className="border px-2 py-1 text-center">{week.useStartDay ? `${week.useStartDay} वा दिन` : ""}</td>
-                  <td className="border px-2 py-1 text-left break-words">
+                  <td className="border px-2 py-1 text-center whitespace-nowrap">
+                    <span className="underline">{week.date ? new Date(week.date).toLocaleDateString("en-GB") : ""}</span>
+                    <br />
+                    {week.useStartDay ? `${week.useStartDay}` : ""}
+                  </td>
+                  <td className="border px-2 py-1 break-words">
                     <ul className="list-disc pl-4 space-y-1">
                       {(week.products || []).map((prod, i) => (
                         <li key={i}>
-                          <div>
-                            <span className="font-medium">{prod.name}</span>: {prod.quantity}
-                          </div>
-                          {prod.perLitreMix && (
-                            <div className="text-green-800">
-                              कुल पानी मे मिली: <span className="text-blue-700 font-medium">{prod.perLitreMix * quotation.acres}</span>
-                            </div>
-                          )}
+                          <span className="font-medium">{prod.name}</span>
                         </li>
                       ))}
                     </ul>
                   </td>
-                  <td className="border px-2 py-1 text-left break-words">
-                    <div className="inline-flex flex-wrap items-start gap-1">
+                  <td className="border px-2 py-1  break-words">
+                    {(week.products || []).map((prod, i) =>
+                      prod.perLitreMix ? (
+                        <div key={i} className="text-green-800">
+                          {prod.name}: <span className="text-blue-700 font-medium">{prod.perLitreMix * quotation.acres}</span>
+                        </div>
+                      ) : null
+                    )}
+                  </td>
+                  <td className="border px-2 py-1 text-center">{week.waterPerAcre}</td>
+                  <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
+                  <td className="border px-2 py-1 text-center">{week.totalWater}</td>
+                  <td className="border px-2 py-1 break-words">
+                    <ul className="list-disc pl-4 space-y-1">
+                      {(week.products || []).map((prod, i) => (
+                        <li key={i}>
+                          <span className="font-medium">{prod.name}</span>: {prod.quantity}
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="border px-2 py-1 break-words w-72">
+                    <div className="inline-flex flex-wrap gap-1">
                       {(week.products || [])
                         .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
                         .map((prod, i, arr) => (
-                          <span key={i} className="text-xs sm:text-sm font-bold">
+                          <span key={i} className="font-bold">
                             {prod.quantity} {prod.name}
                             {i < arr.length - 1 && " और "}
                           </span>
                         ))}
-                      <span dangerouslySetInnerHTML={{ __html: week.instructions }} className="text-xs sm:text-sm" />
+
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: updateInstructionValues(week.instructions || "", week),
+                        }}
+                      />
+
                       {(week.products || [])
                         .filter((prod) => prod.category === "खेत पर पत्तों से धुवा")
                         .map((prod, i, arr) => {
                           let kgValue = "";
                           const mlPart = prod.quantity.split("&")[0].trim();
                           const num = parseFloat(mlPart);
-                          if (!isNaN(num)) kgValue = (num / 1000).toFixed(3) + " KG";
+                          if (!isNaN(num)) kgValue = num / 1000 + " KG";
                           return (
-                            <span key={i} className="text-xs sm:text-sm">
+                            <span key={i} className="font-bold">
                               {arr.length > 1 && i > 0 && " और "}
-                              <span className="font-bold">
-                                {kgValue} {prod.name}
-                              </span>{" "}
-                              धुवा करना
+                              {kgValue} {prod.name} धुवा करना
                             </span>
                           );
                         })}
