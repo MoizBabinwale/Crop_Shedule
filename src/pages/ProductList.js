@@ -153,10 +153,10 @@ const ProductList = () => {
 
             {/* किंमत (१ एकरासाठी) */}
             <div className="flex flex-col w-full sm:w-[48%]">
-              <label className="mb-1 text-green-800 font-medium text-sm">कुल Ml</label>
+              <label className="mb-1 text-green-800 font-medium text-sm">Consontration ml/gm</label>
               <input
                 type="number"
-                placeholder="(कुल Ml)"
+                placeholder="Consontration ml/gm"
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                 value={productPrice}
                 onChange={(e) => setProductPrice(e.target.value)}
@@ -167,7 +167,7 @@ const ProductList = () => {
 
             {/* दर (१ एकरासाठी) */}
             <div className="flex flex-col w-full sm:w-[48%]">
-              <label className="mb-1 text-green-800 font-medium text-sm">दर (ml)</label>
+              <label className="mb-1 text-green-800 font-medium text-sm">दर (ml Rate)</label>
               <input
                 type="number"
                 placeholder="उदा. 4.5"
