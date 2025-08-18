@@ -193,7 +193,7 @@ const Form1 = () => {
           perLiter: week.perLiter,
           waterPerAcre: week.waterPerAcre,
           totalAcres: week.totalAcres,
-          totalWater: week.totalWater,
+          totalWater: week.waterPerAcre,
           productAmountMg: week.productAmountMg,
           productAmountLtr: week.productAmountLtr,
           useStartDay: week.useStartDay,
@@ -218,9 +218,11 @@ const Form1 = () => {
           draggable: false,
           theme: "light",
         });
+        console.log("res saved ", res);
+
+        setIsBillReady(true);
+        setScheduleId(res.data._id);
       }
-      setIsBillReady(true);
-      setScheduleId(res._id);
     } catch (err) {
       console.error(err);
       toast.warning("Unable to Save!", {
@@ -361,64 +363,56 @@ const Form1 = () => {
 
           <form>
             <div className="flex justify-center items-start min-h-screen py-10 px-4 bg-green-50 bg-cover bg-fixed" style={{ backgroundImage: `url(${bgImage})` }}>
-              <div className="w-full max-w-6xl space-y-5">
+              <div className="w-full max-w-6xl space-y-6">
                 {weekForms.map((week, index) => (
-                  <details key={index} className="mb-4 border border-green-300 rounded-xl shadow-md bg-white">
-                    <summary className="bg-green-200 text-green-900 px-4 py-3 font-bold text-lg cursor-pointer">🌱 Week {week.weekNumber} - शेड्यूल फॉर्म</summary>
-                    <div className="p-4  text-sm text-gray-800">
-                      {/* Date Field */}
-                      <div className="flex justify-between">
-                        <div className="grid gap-3 items-center">
-                          <label className="text-green-700 font-medium">Date:</label>
+                  <details key={index} className="border border-green-300 rounded-2xl shadow-lg bg-white overflow-hidden">
+                    <summary className="bg-green-200 text-green-900 px-5 py-4 font-bold text-lg cursor-pointer select-none">🌱 Week {week.weekNumber} - शेड्यूल फॉर्म</summary>
+
+                    <div className="p-6 text-sm text-gray-800 space-y-6">
+                      {/* Date + Water Info */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="flex flex-col">
+                          <label className="text-green-700 font-medium mb-1">Date:</label>
                           <input
                             type="date"
                             value={week.date}
                             onChange={(e) => handleWeekFormChange(index, "date", e.target.value)}
-                            className=" border border-green-300 text-green-800 px-3 py-2 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
+                            className="border border-green-300 text-green-800 px-3 py-2 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                           />
                         </div>
 
-                        {/* Other Input Fields */}
-                        {/* Other Input Fields */}
-                        {[
-                          { name: "waterPerAcre", label: "पानी / एकड़ (लीटर में)", placeholder: "जैसे: 500" },
-                          { name: "totalWater", label: "पानी कुल लीटर", placeholder: "जैसे: 500" },
-                          // { name: "useStartDay", label: "आरंभ दिन से उपयोग करने का दिन", placeholder: "जैसे: 5 वें दिन से" },
-                        ].map((field, i) => (
-                          <div key={i} className="grid gap-3 items-center">
-                            <label className="text-green-700 font-medium">{field.label}:</label>
-                            <input
-                              type="text"
-                              value={week[field.name]}
-                              onChange={(e) => {
-                                handleWeekFormChange(index, field.name, e.target.value);
-                                // }
-                              }}
-                              placeholder={field.placeholder}
-                              className="w-full border border-green-300 text-green-800 px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500"
-                              // readOnly={field.name === "totalAcres"} // 🔒 Lock the field
-                            />
-                          </div>
-                        ))}
-                        <div className="grid gap-3 items-center">
-                          <label className="block text-green-700 font-medium mt-2">दिवस:</label>
-                          <p className="text-sm text-green-900 font-semibold">{week.useStartDay || ""}</p>
+                        <div className="flex flex-col">
+                          <label className="text-green-700 font-medium mb-1">पानी / एकड़ (लीटर में)</label>
+                          <input
+                            type="text"
+                            value={week.waterPerAcre}
+                            onChange={(e) => handleWeekFormChange(index, "waterPerAcre", e.target.value)}
+                            placeholder="जैसे: 500"
+                            className="border border-green-300 text-green-800 px-3 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          />
+                        </div>
+
+                        <div className="flex flex-col">
+                          <label className="text-green-700 font-medium mb-1">दिवस:</label>
+                          <p className="text-base text-green-900 font-semibold border rounded-lg bg-green-50 px-3 py-2">{week.useStartDay || "-"}</p>
                         </div>
                       </div>
 
-                      <h2 className="text-base font-semibold text-green-700 mt-4">🌿 उत्पाद विवरण - Product Details</h2>
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex flex-col w-full md:w-1/2">
-                          <input type="text" placeholder="Search product..." className="mb-2 border p-1.5 rounded text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                          <div className="flex flex-col gap-2 overflow-y-auto max-h-[260px] pr-2">
+                      {/* Product Selection */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Product List */}
+                        <div>
+                          <h3 className="font-semibold text-green-800 text-base mb-2">उत्पाद चयन (Select Products):</h3>
+                          <input type="text" placeholder="Search product..." className="mb-3 border p-2 rounded-lg text-sm w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                          <div className="flex flex-col gap-3 overflow-y-auto max-h-[280px] pr-2">
                             {filteredProducts.map((product) => {
                               const isSelected = !!week.products[product._id];
                               return (
-                                <div key={product._id} className="flex justify-between items-center bg-green-50 p-2 rounded border border-green-200">
+                                <div key={product._id} className="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-200 hover:bg-green-100 transition">
                                   <label className="flex items-center gap-3">
                                     <input type="checkbox" checked={isSelected} onChange={() => handleCheckboxChange(index, product._id)} />
                                     <span className="text-sm font-medium text-green-900">{product.name}</span>
-                                    <span className="text-sm text-gray-600">₹{product.pricePerAcre} / acre</span>
+                                    <span className="text-xs text-gray-600">₹{product.pricePerAcre} / acre</span>
                                   </label>
 
                                   <div className="flex gap-1">
@@ -428,7 +422,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.ml || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "ml", e.target.value, product.category, week.totalWater)}
+                                      onChange={(e) => handleQuantityChange(index, product._id, "ml", e.target.value, product.category, week.waterPerAcre)}
                                     />
                                     <input
                                       type="number"
@@ -436,7 +430,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.l || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "l", e.target.value, product.category, week.totalWater)}
+                                      onChange={(e) => handleQuantityChange(index, product._id, "l", e.target.value, product.category, week.waterPerAcre)}
                                     />
                                     <input
                                       type="number"
@@ -444,7 +438,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-28 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.perLitreMix || ""}
-                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.totalWater)}
+                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.waterPerAcre)}
                                     />
                                   </div>
                                 </div>
@@ -453,23 +447,31 @@ const Form1 = () => {
                           </div>
                         </div>
 
-                        <div className="md:w-1/2 h-[260px] overflow-y-auto border-l border-green-200 pl-3">
-                          <h3 className="font-semibold text-green-800 text-sm mb-1">चयनित उत्पाद (Selected Products):</h3>
-                          <ul className="list-disc ml-5 text-sm text-gray-700 leading-snug">
-                            {Object.entries(week.products).map(([id, data]) => {
-                              const productName = products.find((p) => p._id === id)?.name || "Unknown";
-                              return (
-                                <li key={id}>
-                                  {productName}: {data.ml || 0} ml/grm & {data.l || 0} ltr/kg प्रती लिटर पानी मे - {data.perLitreMix}
-                                </li>
-                              );
-                            })}
-                          </ul>
+                        {/* Selected Products */}
+                        <div>
+                          <h3 className="font-semibold text-green-800 text-base mb-2">चयनित उत्पाद (Selected):</h3>
+                          <div className="h-[280px] overflow-y-auto border border-green-200 rounded-lg p-3 bg-green-50">
+                            {Object.entries(week.products).length === 0 ? (
+                              <p className="text-gray-500 text-sm">No products selected</p>
+                            ) : (
+                              <ul className="list-disc ml-5 text-sm text-gray-700 leading-snug space-y-1">
+                                {Object.entries(week.products).map(([id, data]) => {
+                                  const productName = products.find((p) => p._id === id)?.name || "Unknown";
+                                  return (
+                                    <li key={id}>
+                                      <span className="font-medium text-green-900">{productName}</span>: {data.ml || 0} ml/grm & {data.l || 0} ltr/kg प्रती लिटर पानी मे - {data.perLitreMix}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="w-full mt-6 ">
-                        <label className="text-green-700 font-medium  block w-full mb-2">निर्देश:</label>
+                      {/* Instructions */}
+                      <div>
+                        <label className="text-green-700 font-medium block mb-2">निर्देश:</label>
                         <CKEditor
                           editor={ClassicEditor}
                           data={week.instructions || ""}
@@ -479,7 +481,6 @@ const Form1 = () => {
                           }}
                           config={{
                             toolbar: ["heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "|", "undo", "redo"],
-                            toolbar: ["heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "|", "undo", "redo"],
                           }}
                         />
                       </div>
@@ -487,15 +488,19 @@ const Form1 = () => {
                   </details>
                 ))}
 
-                <div className="text-center mt-6 flex flex-col sm:flex-row justify-center gap-4">
-                  <button onClick={handleSubmit} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow">
-                    {" "}
-                    सभी शेड्यूल सेव करें (Save All Schedules)
+                {/* Buttons */}
+                <div className="text-center mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                  <button onClick={handleSubmit} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg shadow font-medium transition">
+                    सभी शेड्यूल सेव करें
                   </button>
-                  <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
-                    👀 शेड्यूल पहा (View Schedule)
+                  <button onClick={handleClick} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition">
+                    👀 शेड्यूल पहा
                   </button>
-                  <button onClick={() => generateScheduleBill()} disabled={!isBillReady} className="bg-green-700 hover:bg-green-800 text-white font-semibold px-6 py-2 rounded shadow">
+                  <button
+                    onClick={() => generateScheduleBill()}
+                    disabled={!isBillReady}
+                    className={`px-6 py-2 rounded-lg shadow font-semibold transition ${isBillReady ? "bg-green-700 hover:bg-green-800 text-white" : "bg-gray-300 text-gray-600 cursor-not-allowed"}`}
+                  >
                     ✅ शेड्युल बिल
                   </button>
                 </div>

@@ -320,7 +320,13 @@ const ScheduleBill = () => {
                         <td className="border p-1 text-center">{product.ltrKg}</td>
                         <td className="border p-1 text-center">{product.rate}</td>
 
-                        <td className="border p-1 text-center">₹{product.totalMl * product.rate}</td>
+                        <td className="border p-1 text-center">
+                          ₹
+                          {(product.totalMl * product.rate).toLocaleString("en-IN", {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2,
+                          })}
+                        </td>
                       </tr>
                     );
                   })}
