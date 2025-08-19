@@ -316,7 +316,7 @@ const ScheduleBill = () => {
                         <td className="border p-1 ">{product.name}</td>
                         <td className="border p-1 text-center">{product.times}</td>
                         <td className="border p-1 text-center">{product.totalMl}</td>
-                        <td className="border p-1 text-center">{product.ltrKg}</td>
+                        <td className="border p-1 text-center">{product.ltrKg ? parseFloat(product.ltrKg).toFixed(2) : "-"}</td>
                         <td className="border p-1 text-center">{product.rate}</td>
 
                         <td className="border p-1 text-center">
