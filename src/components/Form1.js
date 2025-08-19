@@ -117,7 +117,7 @@ const Form1 = () => {
     );
   };
 
-  const handlePerLitreChange = (weekIndex, productId, value, category, totalWater) => {
+  const handlePerLitreChange = (weekIndex, productId, value, category, totalWater, rate) => {
     const numericValue = parseFloat(value);
 
     setWeekForms((prev) =>
@@ -126,10 +126,12 @@ const Form1 = () => {
 
         let ml = week.products?.[productId]?.ml || "";
         let l = week.products?.[productId]?.l || "";
+        let totalRate = week.products?.[productId]?.totalRate || 0;
 
         if (category !== "खेत पर पत्तों से धुवा" && totalWater && !isNaN(numericValue)) {
-          ml = (numericValue * totalWater).toFixed(0);
-          l = ((numericValue * totalWater) / 1000).toFixed(3);
+          ml = (numericValue * totalWater).toFixed(0); // total ml
+          l = ((numericValue * totalWater) / 1000).toFixed(3); // convert to litres
+          totalRate = (parseFloat(ml) * rate).toFixed(2); // 💰 multiply with rate per ml/gm
         }
 
         return {
@@ -141,6 +143,7 @@ const Form1 = () => {
               perLitreMix: value,
               ml,
               l,
+              totalRate,
             },
           },
         };
@@ -254,6 +257,7 @@ const Form1 = () => {
       if (res && res.weeks?.length > 0) {
         const formattedWeeks = res.weeks.map((week) => {
           const productsObject = {};
+
           if (Array.isArray(week.products)) {
             week.products.forEach((product) => {
               const matched = products.find((p) => p.name === product.name);
@@ -262,6 +266,12 @@ const Form1 = () => {
                 const productId = matched._id;
                 const [ml = "", l = ""] = product.quantity.split("&").map((q) => q.trim().split(" ")[0]);
 
+                // ✅ Calculate totalRate if ml and rate are available
+                let totalRate = 0;
+                if (ml && product?.rate) {
+                  totalRate = (parseFloat(ml) * product.rate).toFixed(2);
+                }
+
                 productsObject[productId] = {
                   ml: ml || "",
                   l: l || "",
@@ -269,6 +279,7 @@ const Form1 = () => {
                   instruction: product.instruction,
                   category: product?.category,
                   rate: product?.rate,
+                  totalRate, // <-- store here
                 };
               }
             });
@@ -412,7 +423,7 @@ const Form1 = () => {
                                   <label className="flex items-center gap-3">
                                     <input type="checkbox" checked={isSelected} onChange={() => handleCheckboxChange(index, product._id)} />
                                     <span className="text-sm font-medium text-green-900">{product.name}</span>
-                                    <span className="text-xs text-gray-600">₹{product.pricePerAcre} / acre</span>
+                                    <span className="text-xs text-gray-600">₹{week.products[product._id]?.totalRate || 0}</span>
                                   </label>
 
                                   <div className="flex gap-1">
@@ -422,7 +433,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.ml || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "ml", e.target.value, product.category, week.waterPerAcre)}
+                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.waterPerAcre, product.rate)}
                                     />
                                     <input
                                       type="number"
@@ -430,7 +441,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-16 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.l || ""}
-                                      onChange={(e) => handleQuantityChange(index, product._id, "l", e.target.value, product.category, week.waterPerAcre)}
+                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.waterPerAcre, product.rate)}
                                     />
                                     <input
                                       type="number"
@@ -438,7 +449,7 @@ const Form1 = () => {
                                       className="border rounded px-1 py-0.5 w-28 text-xs"
                                       disabled={!isSelected}
                                       value={week.products[product._id]?.perLitreMix || ""}
-                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.waterPerAcre)}
+                                      onChange={(e) => handlePerLitreChange(index, product._id, e.target.value, product.category, week.waterPerAcre, product.rate)}
                                     />
                                   </div>
                                 </div>
@@ -449,17 +460,22 @@ const Form1 = () => {
 
                         {/* Selected Products */}
                         <div>
-                          <h3 className="font-semibold text-green-800 text-base mb-2">चयनित उत्पाद (Selected):</h3>
-                          <div className="h-[280px] overflow-y-auto border border-green-200 rounded-lg p-3 bg-green-50">
+                          <h3 className="font-semibold text-green-800 text-sm sm:text-base mb-2">चयनित उत्पाद (Selected):</h3>
+
+                          <div className="max-h-40 sm:h-[280px] overflow-y-auto border border-green-200 rounded-lg p-3 bg-green-50">
                             {Object.entries(week.products).length === 0 ? (
-                              <p className="text-gray-500 text-sm">No products selected</p>
+                              <p className="text-gray-500 text-xs sm:text-sm">No products selected</p>
                             ) : (
-                              <ul className="list-disc ml-5 text-sm text-gray-700 leading-snug space-y-1">
+                              <ul className="list-disc ml-4 sm:ml-5 text-xs sm:text-sm text-gray-700 leading-snug space-y-2 break-words">
                                 {Object.entries(week.products).map(([id, data]) => {
                                   const productName = products.find((p) => p._id === id)?.name || "Unknown";
                                   return (
-                                    <li key={id}>
-                                      <span className="font-medium text-green-900">{productName}</span>: {data.ml || 0} ml/grm & {data.l || 0} ltr/kg प्रती लिटर पानी मे - {data.perLitreMix}
+                                    <li key={id} className="flex flex-col sm:flex-row sm:items-center">
+                                      <span className="font-medium text-green-900 mr-1">{productName}</span>
+                                      <span className="text-gray-700">
+                                        {data.ml || 0} ml/grm & {data.l || 0} ltr/kg
+                                        <span className="block sm:inline text-gray-600"> प्रती लिटर पानी मे - {data.perLitreMix}</span>
+                                      </span>
                                     </li>
                                   );
                                 })}

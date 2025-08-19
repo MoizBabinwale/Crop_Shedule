@@ -167,7 +167,7 @@ const ProductList = () => {
 
             {/* दर (१ एकरासाठी) */}
             <div className="flex flex-col w-full sm:w-[48%]">
-              <label className="mb-1 text-green-800 font-medium text-sm">दर (ml Rate)</label>
+              <label className="mb-1 text-green-800 font-medium text-sm">दर (ml/gram Rate)</label>
               <input
                 type="number"
                 placeholder="उदा. 4.5"

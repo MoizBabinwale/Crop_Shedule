@@ -40,7 +40,6 @@ const ScheduleBill = () => {
       try {
         if (scheduleId) {
           const schedule = await getScheduleById(scheduleId);
-          console.log("schedule ", schedule);
           if (schedule && Array.isArray(schedule.weeks)) {
             // Merge all products from all weeks
             const allProducts = schedule.weeks.flatMap((week) => week.products || []);
@@ -62,7 +61,7 @@ const ScheduleBill = () => {
 
               // Extract ml and kg from "5000 ml/grm & 5.000 ltr/kg"
               const matchMl = product.quantity.match(/([\d.]+)\s*ml\/g/i);
-              const matchKg = product.quantity.match(/([\d.]+)\s*l\/kg/i);
+              const matchKg = product.quantity.match(/([\d.]+)\s*ltr\/kg/i);
 
               if (matchMl) acc[key].totalMl += parseFloat(matchMl[1]);
               if (matchKg) acc[key].ltrKg += parseFloat(matchKg[1]);
@@ -72,6 +71,7 @@ const ScheduleBill = () => {
 
             // Convert to array for table rendering
             const tableData = Object.values(groupedProducts);
+            console.log("tableData ", tableData);
 
             setProductList(tableData);
           }
@@ -135,7 +135,6 @@ const ScheduleBill = () => {
         try {
           const res = await getScheduleBillByScheduleId(scheduleId);
           if (res) {
-            console.log("res ", res);
             setBillId(res?.scheduleId);
             setBillData(res);
           }
