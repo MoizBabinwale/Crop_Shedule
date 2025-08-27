@@ -214,3 +214,11 @@ export const addInstruction = async (text) => {
   const res = await axios.post(`${BASE_URL}/instructions`, { text });
   return res.data;
 };
+export const editInstruction = async (id, text) => {
+  const res = await axios.post(`${BASE_URL}/instructions/${id}`, { text });
+  return res.data;
+};
+export const deleteInstruction = async (id) => {
+  const res = await axios.post(`${BASE_URL}/instructions/delinstruction/${id}`);
+  return res.data;
+};

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addInstruction, getInstructions, getProductList, getSchedulesByCropId, submitData } from "../api/api";
+import { addInstruction, deleteInstruction, editInstruction, getInstructions, getProductList, getSchedulesByCropId, submitData } from "../api/api";
 import { useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -341,33 +341,58 @@ const Form1 = () => {
   };
 
   const [instructions, setInstructions] = useState([]);
+  const [insLoading, setInsLoading] = useState(false);
 
   useEffect(() => {
     fetchInstructions();
   }, []);
 
   const fetchInstructions = async () => {
+    setInsLoading(true);
     const data = await getInstructions();
     setInstructions(data);
+    setInsLoading(false);
   };
 
   const [newInstruction, setNewInstruction] = useState("");
 
+  const [open, setOpen] = useState(false);
+  // const [newInstruction, setNewInstruction] = useState("");
+  // const [instructions, setInstructions] = useState([
+  //   "200 लीटर पानी में मिलाकर मिश्रण तैयार करना है।",
+  //   "इस मिश्रण का स्प्रे करना है या ड्रिप से देना है।",
+  // ]);
+  const [editId, setEditId] = useState(null);
+
+  // Add or update
   const handleAddInstruction = async () => {
     if (!newInstruction.trim()) return;
-    const added = await addInstruction(newInstruction);
-    setInstructions([...instructions, added]);
+
+    if (editId !== null) {
+      await editInstruction(editId, newInstruction); // ✅ wait for update
+      setEditId(null);
+    } else {
+      await addInstruction(newInstruction); // ✅ wait for add
+    }
+
+    await fetchInstructions(); // ✅ fetch after DB update
     setNewInstruction("");
+  };
+
+  // Delete
+  const handleDelete = (id) => {
+    // setInstructions(instructions.filter((_, i) => i !== index));
+    deleteInstruction(id);
     fetchInstructions();
   };
 
-  // const toggleSelection = (id) => {
-  //   if (value.includes(id)) {
-  //     onChange(value.filter((v) => v !== id));
-  //   } else {
-  //     onChange([...value, id]);
-  //   }
-  // };
+  // Edit
+  const handleEdit = (inst) => {
+    setNewInstruction(inst.text);
+    setEditId(inst._id);
+
+    // fetchInstructions()
+  };
 
   return (
     <>
@@ -575,41 +600,10 @@ const Form1 = () => {
                       </div>
 
                       {/* Instructions */}
-                      {/* <div>
-                        <label className="text-green-700 font-medium block mb-2">निर्देश:</label>
-                        <CKEditor
-                          editor={ClassicEditor}
-                          data={week.instructions || ""}
-                          onChange={(event, editor) => {
-                            const data = editor.getData();
-                            handleWeekFormChange(index, "instructions", data);
-                          }}
-                          config={{
-                            toolbar: ["heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "|", "undo", "redo"],
-                          }}
-                        />
-                      </div> */}
                       <div>
-                        {/* <InstructionSelector
-                          value={week.instructions || []} // instructions array of IDs
-                          onChange={(selected) => handleWeekFormChange(index, "instructions", selected)}
-                        /> */}
-                        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                          <label className="text-green-700 font-medium block mb-2">निर्देश :</label>
-
-                          <div className="flex gap-2 mt-1 mb-3">
-                            <input
-                              type="text"
-                              placeholder="नया निर्देश जोड़ें"
-                              value={newInstruction}
-                              onChange={(e) => setNewInstruction(e.target.value)}
-                              className="border rounded px-2 py-1 text-sm w-full"
-                            />
-                            <button type="button" onClick={handleAddInstruction} className="bg-green-600 text-white px-3 py-1 rounded">
-                              Add
-                            </button>
-                          </div>
-                        </div>
+                        <button type="button" onClick={() => setOpen(true)} className="bg-green-700 text-white px-4 py-2 rounded-lg shadow hover:bg-green-800 transition">
+                          Manage Instructions
+                        </button>
                       </div>
                       <div>
                         <label className="text-green-700 font-medium block mb-2">निर्देश:</label>
@@ -650,6 +644,58 @@ const Form1 = () => {
             </div>
           </form>
         </>
+      )}
+      {open && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-2">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-4 sm:p-6 relative">
+            {/* Close */}
+            <button
+              onClick={() => {
+                setOpen(false);
+                setNewInstruction("");
+                setEditId(null);
+              }}
+              className="absolute top-3 right-3 text-gray-500 hover:text-black"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-semibold text-green-800 mb-4">निर्देश प्रबंधन</h2>
+
+            {/* Add/Edit form */}
+            <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+              <label className="text-green-700 font-medium block mb-2">नया निर्देश जोड़ें / एडिट करें :</label>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input type="text" placeholder="नया निर्देश लिखें" value={newInstruction} onChange={(e) => setNewInstruction(e.target.value)} className="border rounded px-2 py-2 text-sm w-full" />
+                <button type="button" onClick={handleAddInstruction} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                  {editId !== null ? "Update" : "Add"}
+                </button>
+              </div>
+            </div>
+
+            {/* List of instructions */}
+            {insLoading ? (
+              <>कृपया प्रतीक्षा करे...</>
+            ) : (
+              <ul className="space-y-2 max-h-60 overflow-y-auto">
+                {instructions.map((inst, i) => (
+                  <li key={inst._id || i} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded border">
+                    <span className="text-sm text-gray-800">{inst.text}</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(inst)} className="text-blue-600 hover:text-blue-800 text-sm">
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(inst._id)} className="text-red-600 hover:text-red-800 text-sm">
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       )}
     </>
   );
