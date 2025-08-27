@@ -71,7 +71,6 @@ const ScheduleBill = () => {
 
             // Convert to array for table rendering
             const tableData = Object.values(groupedProducts);
-            console.log("tableData ", tableData);
 
             setProductList(tableData);
           }
@@ -110,7 +109,7 @@ const ScheduleBill = () => {
         totalMl: Number(p.totalMl),
         ltrKg: Number(p.ltrKg),
         rate: Number(p.rate),
-        totalAmt: Number(p.pricePerAcre * p.times),
+        totalAmt: Number(p.totalMl * p.rate),
       })),
       additionalInfo: {
         ...costDetails, // all cost fields from the unified object
@@ -186,14 +185,30 @@ const ScheduleBill = () => {
 
   // Calculate all values whenever schedule or productList changes
   useEffect(() => {
-    if (!scheduleData || !productList) return;
+    if (scheduleData.length <= 0 || productList.length <= 0) return;
 
     const totalAcres = 1; // always 1
     const totalPlantswithHector = scheduleData.totalPlants * totalAcres;
     const totalPlants = scheduleData.totalPlants;
     const totalGuntha = totalAcres * 40;
 
-    const totalCost = productList.reduce((sum, product) => sum + (product.pricePerAcre * product.times || 0), 0);
+    // Helper to parse "ml/grm" from quantity string
+    const parseMlFromQuantity = (qtyStr) => {
+      if (!qtyStr) return 0;
+
+      const mlMatch = qtyStr.match(/([\d.]+)\s*ml\/grm/);
+      if (mlMatch) {
+        return parseFloat(mlMatch[1]);
+      }
+      return 0;
+    };
+
+    // Calculate total cost
+    const totalCost = productList.reduce((sum, product) => {
+      // const mlValue = parseMlFromQuantity(product.totalMl); // extract ml/grm value
+      const productCost = product.totalMl * (product.rate || 0); // multiply by rate
+      return sum + productCost;
+    }, 0);
 
     const perPlantCost = totalPlants > 0 ? totalCost / totalPlants : 0;
 
@@ -201,13 +216,16 @@ const ScheduleBill = () => {
 
     // 2️⃣ Helper to calculate group cost
     const calculateGroupCost = (category) => {
-      const groupProducts = allProducts.filter((p) => p.category === category);
+      const groupProducts = productList.filter((p) => p.category === category);
 
       const totalRs = groupProducts.reduce((sum, p) => {
-        const times = p.times || 1;
-        return sum + (parseFloat(p.pricePerAcre) || 0) * times;
-      }, 0);
+        // const times = p.times || 0;
+        const rate = p.rate || 0;
+        const totalMl = p.totalMl || 0;
 
+        // Multiply totalMl × rate × times
+        return sum + totalMl * rate;
+      }, 0);
       const perGuntha = totalRs / totalGuntha;
       const perAcre = perGuntha * 40;
       const perBigha = perGuntha * 24;
@@ -287,13 +305,13 @@ const ScheduleBill = () => {
           <h3 className="text-xl font-semibold text-green-700 mb-3">🌿 उत्पाद विवरण - Product Details</h3>
           <div className="bg-white rounded-xl border border-green-300 shadow-md p-4 flex flex-col h-full">
             {/* Search */}
-            <input
+            {/* <input
               type="text"
               placeholder="🔍 उत्पादन शोधा..."
               className="w-full border border-green-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            /> */}
 
             {/* Table Container with fixed height and scroll */}
             <div className="overflow-x-auto max-h-[400px] overflow-y-auto border border-green-200 rounded">

@@ -127,7 +127,7 @@ const QuotationBill = () => {
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
 
-                <td className="border px-2 py-1">{item.rate ? `₹${item.rate}` : ""}</td>
+                <td className="border px-2 py-1">{item.rate ? `${item.rate}` : ""}</td>
                 <td className="border px-2 py-1">
                   {item.totalAmt
                     ? `₹${parseFloat(item.totalMl * item.rate).toLocaleString("en-IN", {

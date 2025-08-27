@@ -199,7 +199,6 @@ function CropList() {
         farmerInfo: farmerData, // 👈 save farmer info here
         scheduleId: selectedScheduleId,
       };
-      console.log("quotationPayload ", quotationPayload);
 
       // const res = 1;
       const res = await createQuotation(quotationPayload);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getProductList, getSchedulesByCropId, submitData } from "../api/api";
+import { addInstruction, getInstructions, getProductList, getSchedulesByCropId, submitData } from "../api/api";
 import { useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -8,7 +8,8 @@ import Loading from "./Loading";
 import bgImage from "../assets/farme.jpg";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+// import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+// import InstructionSelector from "./InstructionSelector";
 
 const Form1 = () => {
   const location = useLocation();
@@ -60,6 +61,9 @@ const Form1 = () => {
           week.useStartDay = `${diffDays} वा दिन`;
         }
       });
+    } else if (field === "instructions") {
+      // ✅ Save instructions array for that week
+      updatedWeeks[index].instructions = value;
     } else {
       updatedWeeks[index][field] = value;
 
@@ -127,11 +131,15 @@ const Form1 = () => {
         let ml = week.products?.[productId]?.ml || "";
         let l = week.products?.[productId]?.l || "";
         let totalRate = week.products?.[productId]?.totalRate || 0;
-
+        //
         if (category !== "खेत पर पत्तों से धुवा" && totalWater && !isNaN(numericValue)) {
           ml = (numericValue * totalWater).toFixed(0); // total ml
           l = ((numericValue * totalWater) / 1000).toFixed(3); // convert to litres
           totalRate = (parseFloat(ml) * rate).toFixed(2); // 💰 multiply with rate per ml/gm
+        } else {
+          ml = (numericValue * 1).toFixed(0); // total ml
+          l = (numericValue / 1000).toFixed(3); // convert to litres
+          totalRate = (parseFloat(ml) * rate).toFixed(2);
         }
 
         return {
@@ -221,7 +229,6 @@ const Form1 = () => {
           draggable: false,
           theme: "light",
         });
-        console.log("res saved ", res);
 
         setIsBillReady(true);
         setScheduleId(res.data._id);
@@ -326,13 +333,42 @@ const Form1 = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    console.log("Navigating to", `/schedule/${cropId}`);
     navigate(`/schedule/${cropId}`);
   };
 
   const generateScheduleBill = () => {
     navigate(`/schedulebill/${scheduleId}`);
   };
+
+  const [instructions, setInstructions] = useState([]);
+
+  useEffect(() => {
+    fetchInstructions();
+  }, []);
+
+  const fetchInstructions = async () => {
+    const data = await getInstructions();
+    setInstructions(data);
+  };
+
+  const [newInstruction, setNewInstruction] = useState("");
+
+  const handleAddInstruction = async () => {
+    if (!newInstruction.trim()) return;
+    const added = await addInstruction(newInstruction);
+    setInstructions([...instructions, added]);
+    setNewInstruction("");
+    fetchInstructions();
+  };
+
+  // const toggleSelection = (id) => {
+  //   if (value.includes(id)) {
+  //     onChange(value.filter((v) => v !== id));
+  //   } else {
+  //     onChange([...value, id]);
+  //   }
+  // };
+
   return (
     <>
       {loading ? (
@@ -482,11 +518,64 @@ const Form1 = () => {
                               </ul>
                             )}
                           </div>
+                          <div>
+                            {Object.entries(week.products).length > 0 && week.instructions && (
+                              <p className="text-sm text-green-900 leading-relaxed">
+                                निर्देश :-{" "}
+                                {(() => {
+                                  // Normal products (not "खेत पर पत्तों से धुवा")
+                                  const normalProducts = Object.entries(week.products)
+                                    .filter(([id]) => {
+                                      const product = products.find((p) => p._id === id);
+                                      return product?.category !== "खेत पर पत्तों से धुवा";
+                                    })
+                                    .map(([id, data]) => {
+                                      const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                      let qtyText = "";
+                                      if (data.l && parseFloat(data.l) >= 1) {
+                                        qtyText = `${data.l} लीटर`;
+                                      } else if (data.ml && data.ml > 0) {
+                                        qtyText = `${data.ml} ml`;
+                                      }
+
+                                      return `${productName} ${qtyText}`;
+                                    });
+
+                                  // धुवा products (special case)
+                                  const smokeProducts = Object.entries(week.products)
+                                    .filter(([id]) => {
+                                      const product = products.find((p) => p._id === id);
+                                      return product?.category === "खेत पर पत्तों से धुवा";
+                                    })
+                                    .map(([id, data]) => {
+                                      const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                      // Show only Kg for धुवा
+                                      let qtyText = "";
+                                      if (data.l && parseFloat(data.l) > 0) {
+                                        qtyText = `${data.l} किलो`;
+                                      }
+
+                                      return `${productName} ${qtyText} धुवा करना.`;
+                                    });
+
+                                  // Combine: normal first, then धुवा products at the end
+                                  return (
+                                    <>
+                                      {normalProducts.join(" और ")} को {week.waterPerAcre} लीटर {week.instructions}
+                                      {smokeProducts.length > 0 && ` और ${smokeProducts.join(" और ")}`}
+                                    </>
+                                  );
+                                })()}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       {/* Instructions */}
-                      <div>
+                      {/* <div>
                         <label className="text-green-700 font-medium block mb-2">निर्देश:</label>
                         <CKEditor
                           editor={ClassicEditor}
@@ -499,6 +588,43 @@ const Form1 = () => {
                             toolbar: ["heading", "|", "bold", "italic", "link", "bulletedList", "numberedList", "|", "undo", "redo"],
                           }}
                         />
+                      </div> */}
+                      <div>
+                        {/* <InstructionSelector
+                          value={week.instructions || []} // instructions array of IDs
+                          onChange={(selected) => handleWeekFormChange(index, "instructions", selected)}
+                        /> */}
+                        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                          <label className="text-green-700 font-medium block mb-2">निर्देश :</label>
+
+                          <div className="flex gap-2 mt-1 mb-3">
+                            <input
+                              type="text"
+                              placeholder="नया निर्देश जोड़ें"
+                              value={newInstruction}
+                              onChange={(e) => setNewInstruction(e.target.value)}
+                              className="border rounded px-2 py-1 text-sm w-full"
+                            />
+                            <button type="button" onClick={handleAddInstruction} className="bg-green-600 text-white px-3 py-1 rounded">
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-green-700 font-medium block mb-2">निर्देश:</label>
+                        <select
+                          className="w-full border border-green-300 text-green-800 px-3 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          value={week.instructions || ""}
+                          onChange={(e) => handleWeekFormChange(index, "instructions", e.target.value)}
+                        >
+                          <option value="">-- निर्देश चुनें --</option>
+                          {instructions.map((instr) => (
+                            <option key={instr._id} value={instr.text}>
+                              {instr.text}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </details>

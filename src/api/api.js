@@ -106,8 +106,6 @@ export const getSchedulesByCropId = async (cropId) => {
 // QUOTATION APIS
 export const createQuotation = async (quotationData) => {
   try {
-    console.log("quotationData ", quotationData);
-
     const response = await axios.post(`${BASE_URL}/quotations`, quotationData);
     return response.data;
   } catch (error) {
@@ -157,7 +155,6 @@ export const deleteQuotation = async (id) => {
 export const getScheduleBillByScheduleId = async (scheduleId) => {
   try {
     const res = await axios.get(`${BASE_URL}/schedulebill/${scheduleId}`);
-    console.log("bills ", res);
 
     return res.data;
   } catch (error) {
@@ -180,7 +177,6 @@ export const createQuotationBill = async (quotationId, totalAcres) => {
   try {
     // Step 1: Fetch Quotation (you might already have it in frontend, or fetch if needed)
     const quotationBillRes = await axios.post(`${BASE_URL}/quotationbills/${quotationId}/${totalAcres}`);
-    console.log("quotationbills ", quotationBillRes.data);
     return quotationBillRes.data;
   } catch (error) {
     console.error("Error generating quotation bill:", error);
@@ -205,4 +201,16 @@ export const getScheduleById = async (scheduleId) => {
     console.error("Error getting schedule:", error);
     throw error;
   }
+};
+
+// Fetch all instructions
+export const getInstructions = async () => {
+  const res = await axios.get(`${BASE_URL}/instructions`);
+  return res.data;
+};
+
+// Add a new instruction
+export const addInstruction = async (text) => {
+  const res = await axios.post(`${BASE_URL}/instructions`, { text });
+  return res.data;
 };

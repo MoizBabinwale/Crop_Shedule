@@ -14,7 +14,6 @@ function QuotationMaster() {
   const fetchQuotations = async () => {
     try {
       const res = await getAllQuotations();
-      console.log("res ", res);
 
       if (res.length > 0) {
         setQuotations(res);

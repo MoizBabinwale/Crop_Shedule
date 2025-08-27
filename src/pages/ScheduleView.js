@@ -166,7 +166,7 @@ const ScheduleView = () => {
                     </ul>
                   </td>
                   <td className="border p-2 text-left text-green-900 text-sm max-w-[250px] whitespace-normal">
-                    <div className="inline-flex flex-wrap items-center gap-1">
+                    {/* <div className="inline-flex flex-wrap items-center gap-1">
                       {(week.products || [])
                         .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
                         .map((prod, i, arr) => (
@@ -194,10 +194,82 @@ const ScheduleView = () => {
                               <span className="font-bold">
                                 {kgValue} {prod.name}
                               </span>{" "}
-                              धुवा करना
+                              धुवा करना.
                             </span>
                           );
                         })}
+                    </div> */}
+                    <div>
+                      {Object.entries(week.products).length > 0 && week.instructions && (
+                        <p className="text-sm text-green-900 leading-relaxed">
+                          {(() => {
+                            // Helper to parse qty string like "300 ml/grm & 0.300 ltr/kg"
+                            const parseQtyString = (qtyStr) => {
+                              let ml = null;
+                              let l = null;
+
+                              // Match ml
+                              const mlMatch = qtyStr.match(/([\d.]+)\s*ml/);
+                              if (mlMatch) ml = parseFloat(mlMatch[1]);
+
+                              // Match liter
+                              const lMatch = qtyStr.match(/([\d.]+)\s*(?:ltr|लीटर)/);
+                              if (lMatch) l = parseFloat(lMatch[1]);
+
+                              return { ml, l };
+                            };
+
+                            // Normal products
+                            const normalProducts = Object.entries(week.products)
+                              .filter(([id, data]) => data?.category !== "खेत पर पत्तों से धुवा")
+                              .map(([id, data]) => {
+                                // const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                const { ml, l } = parseQtyString(data.quantity);
+
+                                let qtyText = "";
+                                if (l && l >= 1) {
+                                  qtyText = `${l} लीटर`;
+                                } else if (ml && ml > 0) {
+                                  qtyText = `${ml} ml`;
+                                }
+
+                                return `${data.name} ${qtyText}`;
+                              });
+
+                            // धुवा products
+                            const smokeProducts = Object.entries(week.products)
+                              .filter(([id, data]) => data?.category === "खेत पर पत्तों से धुवा")
+                              .map(([id, data]) => {
+                                // const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                const { l } = parseQtyString(data.quantity || "");
+
+                                let qtyText = "";
+                                if (l && l > 0) {
+                                  qtyText = `${l} किलो`;
+                                }
+
+                                return `${data.name} ${qtyText} धुवा करना.`;
+                              });
+
+                            return (
+                              <>
+                                <span className="font-bold text-green-900">
+                                  {normalProducts.join(" और ")} को {week.waterPerAcre} लीटर
+                                </span>{" "}
+                                {week.instructions}
+                                {smokeProducts.length > 0 && (
+                                  <>
+                                    {" "}
+                                    और <span className="font-bold text-green-900">{smokeProducts.join(" और ")}</span>
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </p>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -11,7 +11,6 @@ const ScheduleBillView = () => {
     const fetchBill = async () => {
       try {
         const res = await getScheduleBillByScheduleId(scheduleId);
-        console.log("res ", res);
 
         setBillData(res);
       } catch (err) {
@@ -60,7 +59,13 @@ const ScheduleBillView = () => {
                 <td className="border px-2 py-1">{item.totalMl}</td>
                 <td className="border px-2 py-1">{item.ltrKg}</td>
                 <td className="border px-2 py-1">{item.rate}</td>
-                <td className="border px-2 py-1">{item.totalAmt ? `₹${item.totalAmt}` : ""}</td>
+                <td className="border p-1 text-center">
+                  ₹
+                  {(item.totalMl * item.rate).toLocaleString("en-IN", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </td>
               </tr>
             ))}
           </tbody>

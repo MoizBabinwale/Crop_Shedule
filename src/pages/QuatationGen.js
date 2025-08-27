@@ -155,36 +155,77 @@ const QuatationGen = () => {
                     </ul>
                   </td>
                   <td className="border px-2 py-1 break-words max-w-[250px]">
-                    <div className="inline-flex flex-wrap gap-1">
-                      {(week.products || [])
-                        .filter((prod) => prod.category !== "खेत पर पत्तों से धुवा")
-                        .map((prod, i, arr) => (
-                          <span key={i} className="font-bold">
-                            {prod.quantity} {prod.name}
-                            {i < arr.length - 1 && " और "}
-                          </span>
-                        ))}
+                    <div>
+                      {Object.entries(week.products).length > 0 && week.instructions && (
+                        <p className="text-sm text-green-900 leading-relaxed">
+                          {(() => {
+                            // Helper to parse qty string like "300 ml/grm & 0.300 ltr/kg"
+                            const parseQtyString = (qtyStr) => {
+                              let ml = null;
+                              let l = null;
 
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: updateInstructionValues(week.instructions || "", week),
-                        }}
-                      />
+                              // Match ml
+                              const mlMatch = qtyStr.match(/([\d.]+)\s*ml/);
+                              if (mlMatch) ml = parseFloat(mlMatch[1]);
 
-                      {(week.products || [])
-                        .filter((prod) => prod.category === "खेत पर पत्तों से धुवा")
-                        .map((prod, i, arr) => {
-                          let kgValue = "";
-                          const mlPart = prod.quantity.split("&")[0].trim();
-                          const num = parseFloat(mlPart);
-                          if (!isNaN(num)) kgValue = num / 1000 + " KG";
-                          return (
-                            <span key={i} className="font-bold">
-                              {arr.length > 1 && i > 0 && " और "}
-                              {kgValue} {prod.name} धुवा करना
-                            </span>
-                          );
-                        })}
+                              // Match liter
+                              const lMatch = qtyStr.match(/([\d.]+)\s*(?:ltr|लीटर)/);
+                              if (lMatch) l = parseFloat(lMatch[1]);
+
+                              return { ml, l };
+                            };
+
+                            // Normal products
+                            const normalProducts = Object.entries(week.products)
+                              .filter(([id, data]) => data?.category !== "खेत पर पत्तों से धुवा")
+                              .map(([id, data]) => {
+                                // const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                const { ml, l } = parseQtyString(data.quantity);
+
+                                let qtyText = "";
+                                if (l && l >= 1) {
+                                  qtyText = `${l} लीटर`;
+                                } else if (ml && ml > 0) {
+                                  qtyText = `${ml} ml`;
+                                }
+
+                                return `${data.name} ${qtyText}`;
+                              });
+
+                            // धुवा products
+                            const smokeProducts = Object.entries(week.products)
+                              .filter(([id, data]) => data?.category === "खेत पर पत्तों से धुवा")
+                              .map(([id, data]) => {
+                                // const productName = products.find((p) => p._id === id)?.name || "Unknown";
+
+                                const { l } = parseQtyString(data.quantity || "");
+
+                                let qtyText = "";
+                                if (l && l > 0) {
+                                  qtyText = `${l} किलो`;
+                                }
+
+                                return `${data.name} ${qtyText} धुवा करना.`;
+                              });
+
+                            return (
+                              <>
+                                <span className="font-bold text-green-900">
+                                  {normalProducts.join(" और ")} को {week.waterPerAcre * week.totalAcres} लीटर
+                                </span>{" "}
+                                {week.instructions}
+                                {smokeProducts.length > 0 && (
+                                  <>
+                                    {" "}
+                                    और <span className="font-bold text-green-900">{smokeProducts.join(" और ")}</span>
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </p>
+                      )}
                     </div>
                   </td>
                 </tr>
