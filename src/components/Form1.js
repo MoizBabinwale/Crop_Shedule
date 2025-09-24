@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addInstruction, deleteInstruction, editInstruction, getInstructions, getProductList, getSchedulesByCropId, submitData } from "../api/api";
+import { addInstruction, deleteInstruction, editInstruction, getCropById, getInstructions, getProductList, getSchedulesByCropId, submitData } from "../api/api";
 import { useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -26,6 +26,7 @@ const Form1 = () => {
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [isBillReady, setIsBillReady] = useState(false);
   const [scheduleId, setScheduleId] = useState("");
+  const [cropWeekInterval, setCropWeekInterval] = useState(0);
 
   // Fetch products once
   useEffect(() => {
@@ -46,11 +47,12 @@ const Form1 = () => {
     const updatedWeeks = [...weekForms];
 
     if (field === "date" && index === 0) {
+      // ✅ If first week date is changed → auto-set others using cropWeekInterval
       const startDate = new Date(value);
 
       updatedWeeks.forEach((week, i) => {
         const newDate = new Date(startDate);
-        newDate.setDate(startDate.getDate() + i * 7); // Week gap
+        newDate.setDate(startDate.getDate() + i * cropWeekInterval); // use backend interval
         week.date = newDate.toISOString().split("T")[0];
 
         // Calculate day difference from start
@@ -65,12 +67,14 @@ const Form1 = () => {
       // ✅ Save instructions array for that week
       updatedWeeks[index].instructions = value;
     } else {
+      // ✅ Update other fields normally
       updatedWeeks[index][field] = value;
 
-      // If date of another week changes, update its useStartDay
+      // If user changes a specific week's date manually
       if (field === "date" && index !== 0) {
         const startDate = new Date(updatedWeeks[0].date);
         const currentDate = new Date(value);
+
         const diffDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
 
         updatedWeeks[index].useStartDay = diffDays === 0 ? "आरंभ दिवस" : `${diffDays} वा दिन`;
@@ -254,8 +258,10 @@ const Form1 = () => {
   useEffect(() => {
     if (cropId && productsLoaded) {
       fetchSchedule();
+      getCropDataById(cropId);
     }
   }, [cropId, productsLoaded]);
+
   const fetchSchedule = async () => {
     try {
       setLoading(true);
@@ -311,7 +317,6 @@ const Form1 = () => {
         setWeekForms(
           Array.from({ length: weeks }, (_, i) => ({
             weekNumber: i + 1,
-            date: "",
             perLiter: 0,
             waterPerAcre: 0,
             totalAcres: 0,
@@ -327,6 +332,18 @@ const Form1 = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching schedule:", error);
+    }
+  };
+
+  const getCropDataById = async (cropId) => {
+    setLoading(true);
+    try {
+      const res = await getCropById(cropId);
+      if (res) {
+        setCropWeekInterval(res?.weekInterval);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to generate quotation");
     }
   };
 

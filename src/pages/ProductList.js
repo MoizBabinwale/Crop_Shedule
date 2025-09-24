@@ -13,7 +13,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState("");
-  const [pricePerAcre, setPricePerAcre] = useState("");
+  const [bottlePerml, setBottlePerml] = useState(0);
   const [productPrice, setProductPrice] = useState("");
   const [productRate, setProductRate] = useState(0);
   const [productInstructions, setProductInstructions] = useState("");
@@ -68,6 +68,7 @@ const ProductList = () => {
           pricePerAcre: Number(productPrice),
           category: productCategory,
           rate: productRate,
+          bottlePerml: bottlePerml,
         });
         toast.success("Product updated successfully");
       } else {
@@ -76,6 +77,7 @@ const ProductList = () => {
           pricePerAcre: Number(productPrice),
           category: productCategory,
           rate: productRate,
+          bottlePerml: bottlePerml,
         });
         toast.success("Product added successfully");
       }
@@ -85,6 +87,7 @@ const ProductList = () => {
       setProductInstructions("");
       setProductCategory("");
       setProductRate(0);
+      setBottlePerml("");
       setEditingId(null);
       fetchProducts();
     } catch (error) {
@@ -139,7 +142,7 @@ const ProductList = () => {
           {/* Add/Edit Product Form */}
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-wrap sm:flex-row gap-4 mb-6">
             {/* उत्पादनाचे नाव */}
-            <div className="flex flex-col w-full sm:w-[48%]">
+            <div className="flex flex-col w-full sm:w-[33%]">
               <label className="mb-1 text-green-800 font-medium text-sm">उत्पादनाचे नाव</label>
               <input
                 type="text"
@@ -156,17 +159,18 @@ const ProductList = () => {
               <label className="mb-1 text-green-800 font-medium text-sm">Consontration ml/gm</label>
               <input
                 type="number"
-                placeholder="Consontration ml/gm"
+                placeholder="Concentration ml/gm"
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                 value={productPrice}
                 onChange={(e) => setProductPrice(e.target.value)}
                 required
                 min="0"
+                step="any" // <-- allows float values
               />
             </div>
 
             {/* दर (१ एकरासाठी) */}
-            <div className="flex flex-col w-full sm:w-[48%]">
+            <div className="flex flex-col w-full sm:w-[30%]">
               <label className="mb-1 text-green-800 font-medium text-sm">दर (ml/gram Rate)</label>
               <input
                 type="number"
@@ -179,8 +183,23 @@ const ProductList = () => {
               />
             </div>
 
+            {/* दर (१ एकरासाठी) */}
+            <div className="flex flex-col w-full sm:w-[30%]">
+              <label className="mb-1 text-green-800 font-medium text-sm">बाटलीचे प्रमाण (ml)</label>
+              <input
+                type="number"
+                placeholder="उदा. 250"
+                className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                value={bottlePerml}
+                onChange={(e) => setBottlePerml(e.target.value)}
+                min="0"
+                step="1"
+                required
+              />
+            </div>
+
             {/* उत्पादन श्रेणी */}
-            <div className="flex flex-col w-full sm:w-[48%]">
+            <div className="flex flex-col w-full sm:w-[33%]">
               <label className="mb-1 text-green-800 font-medium text-sm">उत्पादनाची श्रेणी</label>
               <select
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"

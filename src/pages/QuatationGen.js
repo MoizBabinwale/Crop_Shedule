@@ -3,6 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { createQuotationBill, getQuotationById } from "../api/api";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
+import Footer from "../components/Footer";
+import QuotationFooter from "../components/QuotationFooter";
+
+import logo from "../assets/logo.jpg";
 
 const QuatationGen = () => {
   const { quatationId } = useParams();
@@ -71,14 +75,36 @@ const QuatationGen = () => {
       </div>
 
       {/* Main Print Area */}
-      <div className="print-area bg-white p-4 sm:p-6 rounded shadow-md text-sm border border-gray-300">
-        {/* Header */}
-        <div className="text-center font-bold text-base sm:text-lg mb-4 border-b pb-2 leading-snug">
-          {quotation.cropName} का {quotation.acres} एकड़ का प्लॉट और पर्णनेत्र आयुर्वेदीक कृषि प्रणाली का साप्ताहिक शेड्यूल
+      <div className="print-area bg-white p-4 sm:p-6 rounded shadow-md text-sm border border-gray-300 print:p-0 print:border-0 print:shadow-none print:rounded-none">
+        <div className="hidden print:block print-header">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 px-6">
+            <span>
+              <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
+            </span>
+            <span>
+              <span className="font-medium">गाव (Place):</span> {quotation.farmerInfo?.place}
+            </span>
+            <span>
+              <span className="font-medium">तालुका (Tahsil):</span> {quotation.farmerInfo?.tahsil}
+            </span>
+            <span>
+              <span className="font-medium">जिल्हा (District):</span> {quotation.farmerInfo?.district}
+            </span>
+            <span>
+              <span className="font-medium">राज्य (State):</span> {quotation.farmerInfo?.state}
+            </span>
+
+            {/* Logo + Company name aligned on right */}
+            <span className=" flex items-center justify-end space-x-2 mt-0 pt-0">
+              <img src={logo} alt="Parnanetra Logo" className="h-10 w-auto object-contain" />
+              <span className="text-sm sm:text-base md:text-lg font-bold leading-tight text-right">
+                <span className="text-green-700">Parnanetra</span> Ayurvedic Agro System
+              </span>
+            </span>
+          </div>
         </div>
 
-        {/* Farmer Info */}
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm text-sm leading-relaxed text-gray-800">
+        <div className=" print:hidden">
           <h3 className="text-green-700 font-semibold text-base mb-3">👨‍🌾 शेतकरी माहिती (Farmer Details)</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
             <p>
@@ -99,11 +125,20 @@ const QuatationGen = () => {
           </div>
         </div>
 
-        {/* Weekly Schedule Tables */}
+        {/* Header */}
+
+        {/* Farmer Info */}
+        {/* Screen Farmer Info (normal box) */}
+        <div className=" my-4 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm text-sm leading-relaxed text-gray-800 block">
+          <div className="text-center font-bold text-base sm:text-lg border-b leading-snug ">
+            {quotation.cropName} का {quotation.acres} एकड़ का प्लॉट और पर्णनेत्र आयुर्वेदीक कृषि प्रणाली का साप्ताहिक शेड्यूल
+          </div>
+        </div>
+
         {quotation.weeks.map((week, index) => (
-          <div key={index} className="overflow-x-auto print:overflow-visible print:w-full mt-6">
+          <div key={index} className="print:table-header-group my-3 py-5 overflow-x-auto print:overflow-visible print:w-full mt-6 break-avoid">
             <table className="table-auto min-w-max border border-gray-400 text-xs print:text-[10px] w-full">
-              <thead className="bg-green-100 text-gray-900">
+              <thead className="bg-green-100 text-gray-900 ">
                 <tr>
                   <th className="border px-2 py-1 whitespace-normal">सप्ताह</th>
                   <th className="border px-2 py-1 whitespace-normal">तारीख/उपयोग दिन</th>
@@ -120,7 +155,15 @@ const QuatationGen = () => {
                 <tr className="align-top">
                   <td className="border px-2 py-1 text-center">{week.weekNumber}</td>
                   <td className="border px-2 py-1 text-center whitespace-normal">
-                    <span className="underline">{week.date ? new Date(week.date).toLocaleDateString("en-GB") : ""}</span>
+                    <span className="underline">
+                      {week.date
+                        ? new Date(week.date).toLocaleDateString("hi-IN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : ""}
+                    </span>
                     <br />
                     {week.useStartDay ? `${week.useStartDay}` : ""}
                   </td>
@@ -142,9 +185,9 @@ const QuatationGen = () => {
                       ) : null
                     )}
                   </td>
-                  <td className="border px-2 py-1 text-center">{week.waterPerAcre}</td>
+                  <td className="border px-2 py-1 text-center">{week.waterPerAcre} ml</td>
                   <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
-                  <td className="border px-2 py-1 text-center">{week.totalWater}</td>
+                  <td className="border px-2 py-1 text-center">{week.totalWater} लीटर </td>
                   <td className="border px-2 py-1 break-words">
                     <ul className="list-disc pl-4 space-y-1  max-w-[250px]">
                       {(week.products || []).map((prod, i) => (
@@ -154,7 +197,7 @@ const QuatationGen = () => {
                       ))}
                     </ul>
                   </td>
-                  <td className="border px-2 py-1 break-words max-w-[250px]">
+                  <td className="border px-2 py-1 break-words max-w-[250px] break-inside-avoid-page">
                     <div>
                       {Object.entries(week.products).length > 0 && week.instructions && (
                         <p className="text-sm text-green-900 leading-relaxed">
@@ -233,6 +276,9 @@ const QuatationGen = () => {
             </table>
           </div>
         ))}
+        <div className="hidden print:block print-footer">
+          <div className="max-w-7xl mx-auto text-sm">📍 123 Street, New York, USA &nbsp; | &nbsp; ✉️ info@example.com &nbsp; | &nbsp; 📞 +012 345 67890</div>
+        </div>
       </div>
     </div>
   );

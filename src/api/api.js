@@ -175,6 +175,8 @@ export const createScheduleBill = async (payload) => {
 };
 export const createQuotationBill = async (quotationId, totalAcres) => {
   try {
+    console.log("generatign..");
+
     // Step 1: Fetch Quotation (you might already have it in frontend, or fetch if needed)
     const quotationBillRes = await axios.post(`${BASE_URL}/quotationbills/${quotationId}/${totalAcres}`);
     return quotationBillRes.data;

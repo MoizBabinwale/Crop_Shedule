@@ -10,6 +10,7 @@ const QuotationBill = () => {
   useEffect(() => {
     const fetchBill = async () => {
       const data = await getQuotationBillById(quotationId);
+      console.log("data ", data);
 
       setBillData(data);
     };
@@ -31,11 +32,21 @@ const QuotationBill = () => {
     }
 
     return (
-      <div className="bg-green-50 p-2 rounded border border-green-200">
-        <div className="text-xs text-green-600">
-          {label} :- <span className="text-sm font-semibold">{displayValue}</span>
-        </div>
-      </div>
+      <>
+        {label === "एकूण ₹" ? (
+          <div className="bg-green-50 p-2 rounded border border-green-200">
+            <div className="text-xs text-green-600">
+              {label} :- <span className="text-sm font-semibold">{displayValue}</span> <span className="italic text-black">(for {additionalInfo.totalAcres} acres)</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-green-50 p-2 rounded border border-green-200">
+            <div className="text-xs text-green-600">
+              {label} :- <span className="text-sm font-semibold">{displayValue}</span>
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
@@ -67,7 +78,7 @@ const QuotationBill = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-green-700 flex items-center gap-2">
-          💼 <span className="text-green-800">कोटेशन बिल</span> -<span className="italic">Quotation Bill</span>
+          💼 <span className="text-green-800">कोटेशन</span> -<span className="italic">Quotation</span>
         </h1>
 
         <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded shadow print:hidden">
@@ -115,6 +126,7 @@ const QuotationBill = () => {
               <th className="border px-2 py-1">वेळा</th>
               <th className="border px-2 py-1">कुल Ml</th>
               <th className="border px-2 py-1">Ltr/Kg</th>
+              <th className="border px-2 py-1">एकूण बाटल्या</th>
               <th className="border px-2 py-1">Rate</th>
               <th className="border px-2 py-1">Total Amt</th>
             </tr>
@@ -125,8 +137,9 @@ const QuotationBill = () => {
                 <td className="border px-2 py-1">{item.name}</td>
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
-                <td className="border px-2 py-1">{item.ltrKg}</td>
+                <td className="border px-2 py-1">{item.ltrKg ? Number(item.ltrKg).toFixed(2) : ""}</td>
 
+                <td className="border px-2 py-1">{item.bottlePerml > 0 ? Math.ceil(item.totalMl / item.bottlePerml) : 0}</td>
                 <td className="border px-2 py-1">{item.rate ? `${item.rate}` : ""}</td>
                 <td className="border px-2 py-1">
                   {item.totalAmt
@@ -141,7 +154,7 @@ const QuotationBill = () => {
 
             {/* Total Row */}
             <tr className="bg-green-50 font-bold">
-              <td className="border px-2 py-1 text-right" colSpan={5}>
+              <td className="border px-2 py-1 text-right" colSpan={6}>
                 एकूण रक्कम (Total):
               </td>
               <td className="border px-2 py-1">

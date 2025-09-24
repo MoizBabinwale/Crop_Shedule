@@ -386,6 +386,19 @@ function CropList() {
                     }}
                     required
                   />
+                  <input
+                    type="number"
+                    placeholder="साप्ताहिक अंतर (दिवसांत)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.weekInterval}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewCrop({
+                        ...newCrop,
+                        weekInterval: val === "" ? "" : Number(val), // store interval instead of weeks
+                      });
+                    }}
+                  />
 
                   <div className="flex justify-end space-x-3 pt-2">
                     <button type="button" onClick={() => setIsDialogOpen(false)} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md shadow-sm">

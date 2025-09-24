@@ -30,12 +30,83 @@
 .loading-text {
   margin-top: 12px;
   font-family: "Arial", sans-serif;
-}
+} /* ---------- PRINT STYLES ---------- */
 @media print {
-  .print\\:hidden {
-    display: none !important;
+  /* Header and footer heights (adjust if you change CSS below) */
+  :root {
+    --print-header-height: 100px !important;
+    --print-footer-height: 48px;
+  }
+
+  /* fixed print header (shows on every page) */
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--print-header-height);
+    box-sizing: border-box;
+    z-index: 9999;
+    background: #ffffff; /* keep white so it doesn't overlay content visually */
+    border-bottom: 1px solid #d1d5db;
+    padding: 10px 6px;
+    /* display: block !important; ensure visible in print */
+  }
+
+  /* fixed print footer (shows on every page) */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--print-footer-height);
+    box-sizing: border-box;
+    z-index: 9999;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 6px 12px;
+    display: block !important;
+    text-align: center;
+  }
+
+  /* Reserve space so content doesn't appear under header/footer */
+  .print-area {
+    margin-top: calc(var(--print-header-height) + 8px) !important;
+    margin-bottom: calc(var(--print-footer-height) + 8px) !important;
+  }
+  /* Ensure tables never overlap header after page breaks */
+
+  /* First block (page 1) doesn’t need extra space, since header already accounted */
+  .week-block:first-of-type {
+    padding-top: 100px;
+  }
+
+  /* Prevent week blocks / large instruction cells from splitting */
+  .break-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+  }
+
+  /* tighten printed spacing if needed */
+  body,
+  .print-area {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
+
+@media print {
+  .week-block {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+    padding-top: var(--print-header-height);
+  }
+  .week-block:first-of-type {
+    padding-top: 0; /* don’t push first page */
+  }
+}
+
 /* hide number input arrows for all number inputs */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
