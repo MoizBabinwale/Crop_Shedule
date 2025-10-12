@@ -137,7 +137,7 @@ const QuotationBill = () => {
                 <td className="border px-2 py-1">{item.name}</td>
                 <td className="border px-2 py-1">{item.times}</td>
                 <td className="border px-2 py-1">{item.totalMl}</td>
-                <td className="border px-2 py-1">{item.ltrKg ? Number(item.ltrKg).toFixed(2) : ""}</td>
+                <td className="border px-2 py-1">{item.ltrKg ? Number(item.ltrKg).toFixed(2) : 0}</td>
 
                 <td className="border px-2 py-1">{item.bottlePerml > 0 ? Math.ceil(item.totalMl / item.bottlePerml) : 0}</td>
                 <td className="border px-2 py-1">{item.rate ? `${item.rate}` : ""}</td>
@@ -147,7 +147,7 @@ const QuotationBill = () => {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}`
-                    : ""}
+                    : 0}
                 </td>
               </tr>
             ))}
