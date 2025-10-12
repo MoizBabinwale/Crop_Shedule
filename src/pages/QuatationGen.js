@@ -137,18 +137,18 @@ const QuatationGen = () => {
 
         {quotation.weeks.map((week, index) => (
           <div key={index} className="print:table-header-group my-3 py-5 overflow-x-auto print:overflow-visible print:w-full mt-6 break-avoid">
-            <table className="table-auto min-w-max border border-gray-400 text-xs print:text-[10px] w-full">
+            <table className="table-auto min-w-max border border-separate text-xs print:text-[10px] w-full" style={{ borderSpacing: "0 6px" }}>
               <thead className="bg-green-100 text-gray-900 ">
                 <tr>
-                  <th className="border px-2 py-1 whitespace-normal">सप्ताह</th>
-                  <th className="border px-2 py-1 whitespace-normal">तारीख/उपयोग दिन</th>
-                  <th className="border px-2 py-1  max-w-[250px]">उत्पाद</th>
-                  <th className="border px-2 py-1 whitespace-normal">प्रति लीटर पानी मे मिली</th>
-                  <th className="border px-2 py-1 whitespace-normal">पानी प्रती एकड़</th>
-                  <th className="border px-2 py-1 whitespace-normal">कुल एकड़</th>
+                  <th className="border px-2 py-2 whitespace-normal w-[50px]">सप्ताह</th>
+                  <th className="border px-2 py-2 whitespace-normal">तारीख/उपयोग दिन</th>
+                  <th className="border px-2 py-2  max-w-[250px]">उत्पाद</th>
+                  <th className="border px-2 py-2  whitespace-normal">प्रति लीटर पानी मे मिली</th>
+                  <th className="border px-2 py-2 whitespace-normal">पानी प्रती एकड़</th>
+                  {/* <th className="border px-2 py-1 whitespace-normal">कुल एकड़</th> */}
                   <th className="border px-2 py-1 whitespace-normal">पानी कुल एकड़</th>
                   <th className="border px-2 py-1  max-w-[250px]">उत्पाद व मात्रा</th>
-                  <th className="border px-2 py-1  max-w-[250px]">निर्देश</th>
+                  <th className="border px-2 py-1  max-w-[420px] w-[365px]">निर्देश</th>
                 </tr>
               </thead>
               <tbody>
@@ -186,13 +186,13 @@ const QuatationGen = () => {
                     )}
                   </td>
                   <td className="border px-2 py-1 text-center">{week.waterPerAcre} ml</td>
-                  <td className="border px-2 py-1 text-center">{week.totalAcres}</td>
+                  {/* <td className="border px-2 py-1 text-center">{week.totalAcres}</td> */}
                   <td className="border px-2 py-1 text-center">{week.totalWater} लीटर </td>
                   <td className="border px-2 py-1 break-words">
                     <ul className="list-disc pl-4 space-y-1  max-w-[250px]">
                       {(week.products || []).map((prod, i) => (
                         <li key={i}>
-                          <span className="font-medium">{prod.name}</span>: {prod.quantity}
+                          <span className="font-medium">{prod.name}</span>: {prod.quantity.split("&")[0]}
                         </li>
                       ))}
                     </ul>
