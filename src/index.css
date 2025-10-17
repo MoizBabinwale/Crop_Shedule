@@ -74,6 +74,9 @@
     margin-top: calc(var(--print-header-height) + 8px) !important;
     margin-bottom: calc(var(--print-footer-height) + 8px) !important;
   }
+  .end-of-schedule::after {
+    content: none !important;
+  }
   /* Ensure tables never overlap header after page breaks */
 
   /* First block (page 1) doesn’t need extra space, since header already accounted */

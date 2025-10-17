@@ -3,6 +3,8 @@ import { getQuotationBillById } from "../api/api";
 import { useParams } from "react-router-dom";
 import Loading from "../components/Loading";
 
+import logo from "../assets/logo.jpg";
+
 const QuotationBill = () => {
   const { quotationId } = useParams();
   const [billData, setBillData] = useState(null);
@@ -35,8 +37,8 @@ const QuotationBill = () => {
       <>
         {label === "एकूण ₹" ? (
           <div className="bg-green-50 p-2 rounded border border-green-200">
-            <div className="text-xs text-green-600">
-              {label} :- <span className="text-sm font-semibold">{displayValue}</span> <span className="italic text-black">(for {additionalInfo.totalAcres} acres)</span>
+            <div className="text-xs font-extrabold text-green-600">
+              {label} :- <span className="text-sm ">{displayValue}</span> <span className="italic text-black">(for {additionalInfo.totalAcres} acres)</span>
             </div>
           </div>
         ) : (
@@ -90,9 +92,53 @@ const QuotationBill = () => {
       <div className="border-t border-b border-green-500 py-3 text-sm">
         {/* Top row with date on the right */}
         <div className="flex justify-between items-start mb-3">
-          <div></div> {/* empty left space */}
+          <h3 className="text-green-700 font-semibold text-base mb-3">👨‍🌾 शेतकरी माहिती (Farmer Details)</h3>
           <p className="font-bold text-right">दिनांक: {new Date(billDate).toLocaleDateString("en-GB")}</p>
         </div>
+
+        {/* <div className="hidden print:block print-header h-28 fixed top-0 left-0 right-0 bg-white border-b border-gray-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 px-6">
+            {/* Left: Logo */}
+        {/* <div className="flex-shrink-0 flex items-center justify-center">
+              <img src={logo} alt="Parnanetra Logo" className="h-20 w-auto object-contain print:h-16" />
+            </div> */}
+
+        {/* Right: Company Name + Farmer Info */}
+        {/* <div className="flex flex-col w-full"> */}
+        {/* Company Name */}
+        {/* <div className="text-center sm:text-left mb-2">
+                <span className="text-sm font-bold leading-tight">
+                  <span className="text-green-700">Parnanetra</span> Ayurvedic Agro System
+                </span>
+              </div> */}
+
+        {/* Farmer Info Grid */}
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                <span>
+                  <span className="font-medium">शेतकरी नाव (Name):</span> श्री {farmerInfo?.name}
+                </span>
+                <span>
+                  <span className="font-medium"></span>
+                </span>
+                <span>
+                  <span className="font-medium">गाव (Place):</span> {farmerInfo?.place}
+                </span>
+                <span>
+                  <span className="font-medium">तालुका (Tahsil):</span> {farmerInfo?.tahsil}
+                </span>
+                <span>
+                  <span className="font-medium">जिल्हा (District):</span> {farmerInfo?.district}
+                </span>
+                <span>
+                  <span className="font-medium">राज्य (State):</span> {farmerInfo?.state} */}
+        {/* </span> */}
+        {/* </div> */}
+        {/* </div> */}
+        {/* </div> */}
+        {/* </div>  */}
+
+        {/* Spacer for print header to avoid overlap */}
+        {/* <div className="hidden print:block h- 28"></div> */}
 
         {/* Farmer info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
@@ -186,6 +232,9 @@ const QuotationBill = () => {
       <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={additionalInfo.bioControlCost} />
       <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={additionalInfo.fieldInputPrepCost} />
       <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={additionalInfo.smokeCost} />
+      <div className="hidden print:block fixed bottom-0 left-0 right-0 text-center text-xs border-t border-gray-300 bg-white py-1">
+        📍 235 Gov. Press Colony DABHA, Nagpur, 440023 &nbsp; | &nbsp; ✉️ info@parnanetra.org - parnanetra.org &nbsp; | &nbsp; 📞 +012 345 67890
+      </div>
     </div>
   );
 };

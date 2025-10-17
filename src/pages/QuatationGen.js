@@ -63,7 +63,7 @@ const QuatationGen = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 print:p-4 print:text-xs">
+    <div className="p-4 sm:p-6 md:p-8 print:p-4 print:text-xl">
       {/* Button Actions */}
       <div className="flex flex-col sm:flex-row justify-end mb-4 print:hidden gap-3 sm:gap-10">
         <button onClick={() => window.print()} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm">
@@ -77,52 +77,70 @@ const QuatationGen = () => {
       {/* Main Print Area */}
       <div className="print-area bg-white p-4 sm:p-6 rounded shadow-md text-sm border border-gray-300 print:p-0 print:border-0 print:shadow-none print:rounded-none">
         <div className="hidden print:block print-header">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 px-6">
-            <span>
-              <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
-            </span>
-            <span>
-              <span className="font-medium">गाव (Place):</span> {quotation.farmerInfo?.place}
-            </span>
-            <span>
-              <span className="font-medium">तालुका (Tahsil):</span> {quotation.farmerInfo?.tahsil}
-            </span>
-            <span>
-              <span className="font-medium">जिल्हा (District):</span> {quotation.farmerInfo?.district}
-            </span>
-            <span>
-              <span className="font-medium">राज्य (State):</span> {quotation.farmerInfo?.state}
-            </span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 px-6">
+            {/* Left: Logo */}
+            <div className="flex-shrink-0 flex items-center justify-center">
+              <img src={logo} alt="Parnanetra Logo" className="h-20 w-auto object-contain print:h-16" />
+            </div>
 
-            {/* Logo + Company name aligned on right */}
-            <span className=" flex items-center justify-end space-x-2 mt-0 pt-0">
-              <img src={logo} alt="Parnanetra Logo" className="h-10 w-auto object-contain" />
-              <span className="text-sm sm:text-base md:text-lg font-bold leading-tight text-right">
-                <span className="text-green-700">Parnanetra</span> Ayurvedic Agro System
-              </span>
-            </span>
+            {/* Right: Company Name + Farmer Info */}
+            <div className="flex flex-col w-full">
+              {/* Company Name */}
+              <div className="text-center sm:text-left mb-2">
+                <span className="text-sm font-bold leading-tight">
+                  <span className="text-green-700">Parnanetra</span> Ayurvedic Agro System
+                </span>
+              </div>
+
+              {/* Farmer Info Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                <span>
+                  <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
+                </span>
+                <span>
+                  <span className="font-medium"></span>
+                </span>
+                <span>
+                  <span className="font-medium">गाव (Place):</span> {quotation.farmerInfo?.place}
+                </span>
+                <span>
+                  <span className="font-medium">तालुका (Tahsil):</span> {quotation.farmerInfo?.tahsil}
+                </span>
+                <span>
+                  <span className="font-medium">जिल्हा (District):</span> {quotation.farmerInfo?.district}
+                </span>
+                <span>
+                  <span className="font-medium">राज्य (State):</span> {quotation.farmerInfo?.state}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className=" print:hidden">
+        <div className="flex justify-between items-start mb-3">
           <h3 className="text-green-700 font-semibold text-base mb-3">👨‍🌾 शेतकरी माहिती (Farmer Details)</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-            <p>
-              <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
-            </p>
-            <p>
-              <span className="font-medium">गाव (Place):</span> {quotation.farmerInfo?.place}
-            </p>
-            <p>
-              <span className="font-medium">तालुका (Tahsil):</span> {quotation.farmerInfo?.tahsil}
-            </p>
-            <p>
-              <span className="font-medium">जिल्हा (District):</span> {quotation.farmerInfo?.district}
-            </p>
-            <p>
-              <span className="font-medium">राज्य (State):</span> {quotation.farmerInfo?.state}
-            </p>
-          </div>
+          <p className="font-bold text-right">दिनांक: {new Date().toLocaleDateString("en-GB")}</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          <p>
+            <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
+          </p>
+          <p>
+            <span className="font-medium"></span>
+          </p>
+          <p>
+            <span className="font-medium">गाव (Place):</span> {quotation.farmerInfo?.place}
+          </p>
+          <p>
+            <span className="font-medium">तालुका (Tahsil):</span> {quotation.farmerInfo?.tahsil}
+          </p>
+          <p>
+            <span className="font-medium">जिल्हा (District):</span> {quotation.farmerInfo?.district}
+          </p>
+          <p>
+            <span className="font-medium">राज्य (State):</span> {quotation.farmerInfo?.state}
+          </p>
         </div>
 
         {/* Header */}
@@ -143,7 +161,7 @@ const QuatationGen = () => {
                   <th className="border px-2 py-2 whitespace-normal w-[50px]">सप्ताह</th>
                   <th className="border px-2 py-2 whitespace-normal">तारीख/उपयोग दिन</th>
                   <th className="border px-2 py-2  max-w-[250px]">उत्पाद</th>
-                  <th className="border px-2 py-2  whitespace-normal">प्रति लीटर पानी मे मिली</th>
+                  <th className="border px-2 py-2 print:hidden  whitespace-normal">प्रति लीटर पानी मे मिली</th>
                   <th className="border px-2 py-2 whitespace-normal">पानी प्रती एकड़</th>
                   {/* <th className="border px-2 py-1 whitespace-normal">कुल एकड़</th> */}
                   <th className="border px-2 py-1 whitespace-normal">पानी कुल एकड़</th>
@@ -176,7 +194,7 @@ const QuatationGen = () => {
                       ))}
                     </ul>
                   </td>
-                  <td className="border px-2 py-1  break-words">
+                  <td className="border px-2 py-1 print:hidden  break-words">
                     {(week.products || []).map((prod, i) =>
                       prod.perLitreMix ? (
                         <div key={i} className="text-green-800">
@@ -255,7 +273,10 @@ const QuatationGen = () => {
                             return (
                               <>
                                 <span className="font-bold text-green-900">
-                                  {normalProducts.join(" और ")} को {week.waterPerAcre * week.totalAcres} लीटर
+                                  {normalProducts.join(" और ")} को{" "}
+                                  {week.waterPerAcre * week.totalAcres < 0.5
+                                    ? `${(week.waterPerAcre * week.totalAcres * 1000).toFixed(0)} ml`
+                                    : `${(week.waterPerAcre * week.totalAcres).toFixed(2)} लीटर`}
                                 </span>{" "}
                                 {week.instructions}
                                 {smokeProducts.length > 0 && (
@@ -276,9 +297,18 @@ const QuatationGen = () => {
             </table>
           </div>
         ))}
-        <div className="hidden print:block print-footer">
-          <div className="max-w-7xl mx-auto text-sm">📍 123 Street, New York, USA &nbsp; | &nbsp; ✉️ info@example.com &nbsp; | &nbsp; 📞 +012 345 67890</div>
+        {/* print:fixed print:bottom-0 print:left-0 print:right-0 */}
+        <div className="hidden print:block fixed bottom-0 left-0 right-0 text-center text-xs border-t border-gray-300 bg-white py-1">
+          📍 235 Gov. Press Colony DABHA, Nagpur, 440023 &nbsp; | &nbsp; ✉️ info@parnanetra.org - parnanetra.org &nbsp; | &nbsp; 📞 +012 345 67890
         </div>
+
+        {/* Shown only at the very end (last page) */}
+        {/* <div className="end-of-schedule text-center border-t border-gray-300 print:block"> */}
+        <p className="text-sm text-gray-600 text-center h-0 mt-1">--- End of Schedule ---</p>
+        {/* <p className="text-xs text-gray-500 mt-1">
+              Thank you for choosing <span className="font-semibold text-green-700">Parnanetra Ayurvedic Agro System</span>
+            </p> */}
+        {/* </div> */}
       </div>
     </div>
   );
