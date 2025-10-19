@@ -47,12 +47,11 @@ const Form1 = () => {
     const updatedWeeks = [...weekForms];
 
     if (field === "date" && index === 0) {
-      // ✅ If first week date is changed → auto-set others using cropWeekInterval
       const startDate = new Date(value);
 
       updatedWeeks.forEach((week, i) => {
         const newDate = new Date(startDate);
-        newDate.setDate(startDate.getDate() + i * cropWeekInterval); // use backend interval
+        newDate.setDate(startDate.getDate() + i * 7); // Week gap
         week.date = newDate.toISOString().split("T")[0];
 
         // Calculate day difference from start
@@ -63,18 +62,13 @@ const Form1 = () => {
           week.useStartDay = `${diffDays} वा दिन`;
         }
       });
-    } else if (field === "instructions") {
-      // ✅ Save instructions array for that week
-      updatedWeeks[index].instructions = value;
     } else {
-      // ✅ Update other fields normally
       updatedWeeks[index][field] = value;
 
-      // If user changes a specific week's date manually
+      // If date of another week changes, update its useStartDay
       if (field === "date" && index !== 0) {
         const startDate = new Date(updatedWeeks[0].date);
         const currentDate = new Date(value);
-
         const diffDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
 
         updatedWeeks[index].useStartDay = diffDays === 0 ? "आरंभ दिवस" : `${diffDays} वा दिन`;

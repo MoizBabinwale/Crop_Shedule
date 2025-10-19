@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addCropData, createQuotation, deleteCropById, editCropData, getCropById, getCropData, getSchedulesByCropId } from "../api/api";
+import { addCropData, copyCrop, createQuotation, deleteCropById, editCropData, getCropById, getCropData, getSchedulesByCropId } from "../api/api";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
@@ -9,11 +9,13 @@ import { FaFileInvoice, FaEdit, FaTrash } from "react-icons/fa";
 import bannerImg from "../assets/banner.jpg";
 import leaf from "../assets/Greenleaf.png";
 import { useRef } from "react";
+import { FaCopy } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 function CropList() {
   const [cropList, setCropList] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
   const [newCrop, setNewCrop] = useState({ name: "", description: "", weeks: "" });
   const [editCropId, setEditCropId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -152,6 +154,49 @@ function CropList() {
       ],
     });
   };
+
+  const handleSubmitCopyCrop = async (e) => {
+    e.preventDefault();
+    try {
+      if (!selectedCropId) {
+        toast.error("No crop selected to copy");
+        return;
+      }
+
+      const payload = {
+        name: newCrop.name,
+        description: newCrop.description,
+        weeks: newCrop.weeks,
+        weekInterval: newCrop.weekInterval,
+      };
+
+      const res = await copyCrop(selectedCropId, payload);
+      toast.success(`Crop copied successfully: ${res.newCrop.name}`);
+      setIsCopyDialogOpen(false);
+      fetchCrops();
+      setNewCrop({ name: "", description: "", weeks: "", weekInterval: "" });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to copy crop");
+    }
+  };
+
+  const handleCopyCrop = async (id) => {
+    setIsCopyDialogOpen(true);
+    setSelectedCropId(id);
+    // try {
+    //   // console.log("res._id ",res._id);
+
+    //   // const res = await getCropById(id);
+    //   const res = await getSchedulesByCropId(id);
+    //   if (res) {
+    //     console.log("res ", res);
+    //   }
+    // } catch (error) {
+    //   toast.error(error?.response?.data?.message || "Failed to get crop");
+    // }
+  };
+
+  // handleSubmit()
 
   const handleGenerateQuotation = async (cropId, farmerData) => {
     setLoading(true);
@@ -333,6 +378,9 @@ function CropList() {
                   <button onClick={() => handleDelete(crop._id)} className="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-full shadow" title="Delete Crop">
                     <FaTrash />
                   </button>
+                  <button onClick={() => handleCopyCrop(crop._id)} className="bg-green-100 text-green-600 hover:bg-green-200 p-2 rounded-full shadow" title="Copy Crop">
+                    <FaCopy />
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -402,6 +450,80 @@ function CropList() {
 
                   <div className="flex justify-end space-x-3 pt-2">
                     <button type="button" onClick={() => setIsDialogOpen(false)} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md shadow-sm">
+                      रद्द करा
+                    </button>
+                    <button type="submit" className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-md">
+                      {editCropId ? "अपडेट करा" : "जोडा"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {isCopyDialogOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50"
+              onClick={(e) => {
+                if (modalRef.current && !modalRef.current.contains(e.target)) {
+                  setIsCopyDialogOpen(false);
+                }
+              }}
+            >
+              <div ref={modalRef} className="bg-white border border-green-600 p-6 rounded-2xl shadow-2xl w-[90%] max-w-md relative" onClick={(e) => e.stopPropagation()}>
+                {/* Decorative Icon */}
+                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-green-100 p-2 rounded-full shadow-md">
+                  <img src={leaf} alt="Leaf" className="w-8 h-8" />
+                </div>
+
+                <h2 className="text-2xl font-bold text-green-700 text-center mt-6 mb-4">{"पिक माहिती अपडेट करा"}</h2>
+
+                <form onSubmit={handleSubmitCopyCrop} className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="पिकाचे नाव (Crop Name)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.name}
+                    onChange={(e) => setNewCrop({ ...newCrop, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="पिकाचे वर्णन (Crop Description)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.description}
+                    onChange={(e) => setNewCrop({ ...newCrop, description: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="आठवड्यांची संख्या (Weeks)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.weeks}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewCrop({
+                        ...newCrop,
+                        weeks: val === "" ? "" : Number(val),
+                      });
+                    }}
+                    required
+                  />
+                  {/* <input
+                    type="number"
+                    placeholder="साप्ताहिक अंतर (दिवसांत)"
+                    className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={newCrop.weekInterval}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewCrop({
+                        ...newCrop,
+                        weekInterval: val === "" ? "" : Number(val), // store interval instead of weeks
+                      });
+                    }}
+                  /> */}
+
+                  <div className="flex justify-end space-x-3 pt-2">
+                    <button type="button" onClick={() => setIsCopyDialogOpen(false)} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md shadow-sm">
                       रद्द करा
                     </button>
                     <button type="submit" className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-md">

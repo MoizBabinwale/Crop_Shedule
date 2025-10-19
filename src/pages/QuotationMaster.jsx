@@ -73,6 +73,7 @@ function QuotationMaster() {
               <tr>
                 <th className="px-4 py-3 border border-green-700 text-center">#</th>
                 <th className="px-4 py-3 border border-green-700 text-center">Crop Name</th>
+                <th className="px-4 py-3 border border-green-700 text-center">Farmer Name/Place</th>
                 <th className="px-4 py-3 border border-green-700 text-center">Acres</th>
                 <th className="px-4 py-3 border border-green-700 text-center">Created At</th>
                 <th className="px-4 py-3 border border-green-700 text-center">Actions</th>
@@ -84,6 +85,9 @@ function QuotationMaster() {
                   <tr key={q._id} className="hover:bg-green-100 transition">
                     <td className="px-4 py-2 border border-green-300 text-center font-semibold">{index + 1}</td>
                     <td className="px-4 py-2 border border-green-300 text-center">{q.cropName}</td>
+                    <td className="px-4 py-2 border border-green-300 text-center">
+                      {q.farmerInfo.name} , {q.farmerInfo.place}
+                    </td>
                     <td className="px-4 py-2 border border-green-300 text-center">{q.acres}</td>
                     <td className="px-4 py-2 border border-green-300 text-center">
                       {new Date(q.createdAt).toLocaleString("en-IN", {

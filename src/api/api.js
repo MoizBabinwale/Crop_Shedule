@@ -224,3 +224,8 @@ export const deleteInstruction = async (id) => {
   const res = await axios.post(`${BASE_URL}/instructions/delinstruction/${id}`);
   return res.data;
 };
+
+export const copyCrop = async (cropId, data) => {
+  const res = await axios.post(`${BASE_URL}/schedule/copyCrop/${cropId}`, data);
+  return res.data;
+};
