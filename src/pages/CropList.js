@@ -204,48 +204,80 @@ function CropList() {
       const crop = await getCropById(cropId);
       const schedule = await getSchedulesByCropId(cropId);
 
-      const acreValue = acreValues[cropId]; // not acreValues.cropId
+      const acreValue = acreValues[cropId];
       const acres = Number(acreValue);
-
       const allProducts = (schedule.weeks || []).flatMap((week) => week.products || []);
 
-      const updatedWeeks = schedule.weeks.map((week) => ({
-        ...week,
-        totalWater: String(acres * Number(week.waterPerAcre || 0)),
-        totalAcres: String(acres),
-        productAmountMg: String(acres * Number(week.productAmountMg || 0)),
-        productAmountLtr: String(acres * Number(week.productAmountLtr || 0)),
-        products: (week.products || []).map((prod) => {
-          const [mlPart, lPart] = (prod.quantity || "").split("&").map((q) => q.trim());
+      // 🗓️ Selected new start date by user
+      const newStartDate = farmerData.startDate ? new Date(farmerData.startDate) : null;
 
-          const ml = parseFloat(mlPart?.split(" ")[0]) || 0;
-          const mlUnit = mlPart?.split(" ")[1] || "ml/grm";
+      // 🗓️ Compute date intervals (differences in days between each original week)
+      let dateDiffs = [];
+      if (schedule.weeks.length > 1) {
+        for (let i = 1; i < schedule.weeks.length; i++) {
+          const prev = new Date(schedule.weeks[i - 1].date);
+          const curr = new Date(schedule.weeks[i].date);
+          const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+          dateDiffs.push(diffDays);
+        }
+      }
 
-          const l = parseFloat(lPart?.split(" ")[0]) || 0;
-          const lUnit = lPart?.split(" ")[1] || "ltr/kg";
-          const repeatCount = allProducts.filter((p) => p.name === prod.name).length;
-          return {
-            name: prod.name,
-            quantity: `${(ml * acres).toFixed(2)} ${mlUnit} & ${(l * acres).toFixed(3)} ${lUnit}`,
-            perLitreMix: prod.perLitreMix,
-            price: Number(prod.pricePerAcre * acres * repeatCount).toFixed(2), // 💰 price calculation
-            instruction: prod.instruction,
-            category: prod.category,
-            rate: prod.rate,
-          };
-        }),
-      }));
+      // 🧮 Build updatedWeeks with shifted dates
+      const updatedWeeks = schedule.weeks.map((week, index) => {
+        let newWeekDate;
+
+        if (newStartDate) {
+          if (index === 0) {
+            // First week = selected start date
+            newWeekDate = new Date(newStartDate);
+          } else {
+            // Add previous intervals cumulatively
+            const daysToAdd = dateDiffs.slice(0, index).reduce((sum, d) => sum + d, 0);
+            newWeekDate = new Date(newStartDate);
+            newWeekDate.setDate(newStartDate.getDate() + daysToAdd);
+          }
+        } else {
+          // fallback: use original date if startDate not selected
+          newWeekDate = new Date(week.date);
+        }
+
+        return {
+          ...week,
+          date: newWeekDate.toISOString().split("T")[0], // Keep in YYYY-MM-DD format
+          totalWater: String(acres * Number(week.waterPerAcre || 0)),
+          totalAcres: String(acres),
+          productAmountMg: String(acres * Number(week.productAmountMg || 0)),
+          productAmountLtr: String(acres * Number(week.productAmountLtr || 0)),
+          products: (week.products || []).map((prod) => {
+            const [mlPart, lPart] = (prod.quantity || "").split("&").map((q) => q.trim());
+            const ml = parseFloat(mlPart?.split(" ")[0]) || 0;
+            const mlUnit = mlPart?.split(" ")[1] || "ml/grm";
+            const l = parseFloat(lPart?.split(" ")[0]) || 0;
+            const lUnit = lPart?.split(" ")[1] || "ltr/kg";
+            const repeatCount = allProducts.filter((p) => p.name === prod.name).length;
+
+            return {
+              name: prod.name,
+              quantity: `${(ml * acres).toFixed(2)} ${mlUnit} & ${(l * acres).toFixed(3)} ${lUnit}`,
+              perLitreMix: prod.perLitreMix,
+              price: Number(prod.pricePerAcre * acres * repeatCount).toFixed(2),
+              instruction: prod.instruction,
+              category: prod.category,
+              rate: prod.rate,
+            };
+          }),
+        };
+      });
 
       const quotationPayload = {
         cropId,
         cropName: crop.name,
         acres,
         weeks: updatedWeeks,
-        farmerInfo: farmerData, // 👈 save farmer info here
+        farmerInfo: farmerData,
         scheduleId: selectedScheduleId,
       };
 
-      // const res = 1;
       const res = await createQuotation(quotationPayload);
       toast.success("Quotation created successfully");
       setLoading(false);
@@ -256,6 +288,7 @@ function CropList() {
         tahsil: "",
         district: "",
         state: "",
+        startDate: "",
       });
       const quotationId = res._id;
 
@@ -552,6 +585,15 @@ function CropList() {
                     className="w-full border rounded px-3 py-2 text-sm"
                   />
                 ))}
+
+                <label className="block mt-2 text-sm text-gray-700">Select Starting Date</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={farmerInfo.startDate}
+                  onChange={(e) => setFarmerInfo({ ...farmerInfo, startDate: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
 
                 <div className="flex justify-end gap-3 pt-2">
                   <button onClick={() => setShowModal(false)} className="px-4 py-1.5 bg-gray-300 rounded hover:bg-gray-400 text-sm">

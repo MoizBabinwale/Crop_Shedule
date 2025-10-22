@@ -304,7 +304,7 @@ const QuatationGen = () => {
 
         {/* Shown only at the very end (last page) */}
         {/* <div className="end-of-schedule text-center border-t border-gray-300 print:block"> */}
-        <p className="text-sm text-gray-600 text-center h-0 mt-1">--- End of Schedule ---</p>
+        <p className="print:block hidden text-sm text-gray-600 text-center h-0 mt-1">--- End of Schedule ---</p>
         {/* <p className="text-xs text-gray-500 mt-1">
               Thank you for choosing <span className="font-semibold text-green-700">Parnanetra Ayurvedic Agro System</span>
             </p> */}

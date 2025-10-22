@@ -42,19 +42,32 @@ const Form1 = () => {
     }
   };
 
-  // Function to handle date & other field changes
   const handleWeekFormChange = (index, field, value) => {
     const updatedWeeks = [...weekForms];
 
     if (field === "date" && index === 0) {
       const startDate = new Date(value);
 
+      // ✅ If invalid start date, just update and stop
+      if (isNaN(startDate.getTime())) {
+        updatedWeeks[index].date = value || "";
+        setWeekForms(updatedWeeks);
+        return;
+      }
+
+      // ✅ Default to 7 days if cropWeekInterval is missing or invalid
+      const interval = Number(cropWeekInterval) || 7;
+
       updatedWeeks.forEach((week, i) => {
         const newDate = new Date(startDate);
-        newDate.setDate(startDate.getDate() + i * 7); // Week gap
-        week.date = newDate.toISOString().split("T")[0];
+        newDate.setDate(startDate.getDate() + i * interval);
 
-        // Calculate day difference from start
+        // ✅ Safe conversion
+        if (!isNaN(newDate.getTime())) {
+          week.date = newDate.toISOString().split("T")[0];
+        }
+
+        // ✅ Calculate day difference
         if (i === 0) {
           week.useStartDay = "आरंभ दिवस";
         } else {
@@ -62,16 +75,19 @@ const Form1 = () => {
           week.useStartDay = `${diffDays} वा दिन`;
         }
       });
+    } else if (field === "instructions") {
+      updatedWeeks[index].instructions = value;
     } else {
       updatedWeeks[index][field] = value;
 
-      // If date of another week changes, update its useStartDay
       if (field === "date" && index !== 0) {
         const startDate = new Date(updatedWeeks[0].date);
         const currentDate = new Date(value);
-        const diffDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
 
-        updatedWeeks[index].useStartDay = diffDays === 0 ? "आरंभ दिवस" : `${diffDays} वा दिन`;
+        if (!isNaN(startDate.getTime()) && !isNaN(currentDate.getTime())) {
+          const diffDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+          updatedWeeks[index].useStartDay = diffDays === 0 ? "आरंभ दिवस" : `${diffDays} वा दिन`;
+        }
       }
     }
 
