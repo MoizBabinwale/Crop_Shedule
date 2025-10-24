@@ -33,6 +33,7 @@ function CropList() {
     district: "",
     state: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
 
   const modalRef = useRef(null);
 
@@ -295,6 +296,7 @@ function CropList() {
       navigate(`/schedule/quotation/${quotationId}`);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to generate quotation");
+      fetchCrops();
     } finally {
       setLoading(false);
     }
@@ -314,6 +316,17 @@ function CropList() {
     });
   };
 
+  const [sortBy, setSortBy] = useState("createdAt"); // default sort by name
+
+  const sortedCropList = [...cropList]
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "weeks") return a.weeks - b.weeks;
+      if (sortBy === "createdAt") return new Date(b.createdAt) - new Date(a.createdAt);
+      return 0;
+    })
+    .filter((crop) => crop.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <>
       {loading ? (
@@ -321,23 +334,43 @@ function CropList() {
       ) : (
         <div className="p-6 max-w-6xl mx-auto">
           {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
             <h1 className="text-3xl font-bold text-green-800">Crop List</h1>
-            <button
-              onClick={() => {
-                setIsDialogOpen(true);
-                setEditCropId(null);
-                setNewCrop({ name: "", weeks: "", description: "" });
-              }}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg shadow-md transition"
-            >
-              + Add Crop
-            </button>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 🔍 Search Box */}
+              <input
+                type="text"
+                placeholder="Search Crop Name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border border-green-300 rounded-lg p-2 text-sm text-green-700 placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+
+              {/* 🔽 Sort Dropdown */}
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border border-green-300 rounded-lg p-2 text-sm text-green-700">
+                <option value="name">Sort by Name</option>
+                <option value="weeks">Sort by Weeks</option>
+                <option value="createdAt">Sort by Date (Newest)</option>
+              </select>
+
+              {/* ➕ Add Button */}
+              <button
+                onClick={() => {
+                  setIsDialogOpen(true);
+                  setEditCropId(null);
+                  setNewCrop({ name: "", weeks: "", description: "" });
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg shadow-md transition"
+              >
+                + Add Crop
+              </button>
+            </div>
           </div>
 
           {/* Crop List */}
           <div className="space-y-4">
-            {cropList.map((crop, index) => (
+            {sortedCropList.map((crop, index) => (
               <motion.div
                 key={crop._id}
                 className="bg-white border border-green-200 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:shadow-md transition"
