@@ -42,6 +42,17 @@ function QuotationMaster() {
     fetchQuotations();
   }, []);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const quotationsPerPage = 50;
+
+  // 📄 Pagination logic
+  const indexOfLastQuotation = currentPage * quotationsPerPage;
+  const indexOfFirstQuotation = indexOfLastQuotation - quotationsPerPage;
+  const currentQuotations = quotations.slice(indexOfFirstQuotation, indexOfLastQuotation);
+  const totalPages = Math.ceil(quotations.length / quotationsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="px-4 py-8 max-w-7xl mx-auto">
       {/* Header + Banner */}
@@ -122,7 +133,35 @@ function QuotationMaster() {
           </table>
         )}
       </div>
+      {/* {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-8 space-x-2">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg ${currentPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-green-600 text-white hover:bg-green-700"}`}
+          >
+            Previous
+          </button>
 
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => paginate(index + 1)}
+              className={`px-4 py-2 rounded-lg ${currentPage === index + 1 ? "bg-green-700 text-white" : "bg-green-100 hover:bg-green-200 text-green-800"}`}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-green-600 text-white hover:bg-green-700"}`}
+          >
+            Next
+          </button>
+        </div>
+      )} */}
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
