@@ -82,7 +82,7 @@ function CropList() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (newCrop.weeks <= 0) {
-      toast.warning("आठवड्यांची संख्या 0 किंवा त्यापेक्षा कमी असू शकत नाही!", {
+      toast.warning("ॲप्लिकेशन संख्या 0 किंवा त्यापेक्षा कमी असू शकत नाही!", {
         position: "top-center",
         autoClose: 3000,
         hideProgressBar: false,
@@ -488,7 +488,7 @@ function CropList() {
                   />
                   <input
                     type="number"
-                    placeholder="आठवड्यांची संख्या (Weeks)"
+                    placeholder="ॲप्लिकेशन संख्या (Weeks)"
                     className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     value={newCrop.weeks}
                     onChange={(e) => {
@@ -502,7 +502,7 @@ function CropList() {
                   />
                   <input
                     type="number"
-                    placeholder="साप्ताहिक अंतर (दिवसांत)"
+                    placeholder="ॲप्लिकेशन दरम्यानचा कालावधी (दिवसांत)"
                     className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     value={newCrop.weekInterval}
                     onChange={(e) => {
@@ -562,7 +562,7 @@ function CropList() {
                   />
                   <input
                     type="number"
-                    placeholder="आठवड्यांची संख्या (Weeks)"
+                    placeholder="ॲप्लिकेशन संख्या (Weeks)"
                     className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     value={newCrop.weeks}
                     onChange={(e) => {
@@ -576,7 +576,7 @@ function CropList() {
                   />
                   {/* <input
                     type="number"
-                    placeholder="साप्ताहिक अंतर (दिवसांत)"
+                    placeholder="ॲप्लिकेशन दरम्यानचा कालावधी (दिवसांत)"
                     className="w-full border border-green-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     value={newCrop.weekInterval}
                     onChange={(e) => {

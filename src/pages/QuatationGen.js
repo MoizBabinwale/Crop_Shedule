@@ -67,10 +67,10 @@ const QuatationGen = () => {
       {/* Button Actions */}
       <div className="flex flex-col sm:flex-row justify-end mb-4 print:hidden gap-3 sm:gap-10">
         <button onClick={() => window.print()} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm">
-          Print Quotation
+          प्रिंट वेळापत्रक
         </button>
         <button onClick={() => handleGenerateBill(quotation)} className="bg-yellow-400 text-black px-3 py-2 rounded hover:bg-yellow-500 text-sm">
-          📄 Generate Bill
+          📄 कोटेशन प्रिंट
         </button>
       </div>
 
@@ -117,12 +117,12 @@ const QuatationGen = () => {
           </div>
         </div>
 
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex justify-between items-start mb-3 print:hidden">
           <h3 className="text-green-700 font-semibold text-base mb-3">👨‍🌾 शेतकरी माहिती (Farmer Details)</h3>
           <p className="font-bold text-right">दिनांक: {new Date().toLocaleDateString("en-GB")}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 print:hidden">
           <p>
             <span className="font-medium">शेतकरी नाव (Name):</span> श्री {quotation.farmerInfo?.name}
           </p>
@@ -149,7 +149,7 @@ const QuatationGen = () => {
         {/* Screen Farmer Info (normal box) */}
         <div className=" my-4 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm text-sm leading-relaxed text-gray-800 block">
           <div className="text-center font-bold text-base sm:text-lg border-b leading-snug ">
-            {quotation.cropName} का {quotation.acres} एकड़ का प्लॉट और पर्णनेत्र आयुर्वेदीक कृषि प्रणाली का साप्ताहिक शेड्यूल
+            {quotation.cropName} का {quotation.acres} एकड़ का प्लॉट और पर्णनेत्र आयुर्वेदीक कृषि प्रणाली का शेड्यूल
           </div>
         </div>
 
@@ -283,6 +283,11 @@ const QuatationGen = () => {
                                   <>
                                     {" "}
                                     और <span className="font-bold text-green-900">{smokeProducts.join(" और ")}</span>
+                                  </>
+                                )}
+                                {week.totalWater && (
+                                  <>
+                                    <br /> <span className="font-bold text-green-900">— एकूण {week.totalWater} लीटर पाणी लागेल</span>
                                   </>
                                 )}
                               </>
