@@ -76,8 +76,8 @@ const QuotationBill = () => {
   const { cropName, billDate, farmerInfo, items = [], additionalInfo = {} } = billData;
 
   return (
-    <div className="p-4  max-w-6xl mx-auto bg-white border border-green-300 rounded shadow text-sm">
-      <div className="print-area p-4 max-w-6xl mx-auto bg-white border  text-sm">
+    <div className="pt-4 px-4  max-w-6xl mx-auto bg-white border border-green-300 rounded shadow text-sm">
+      <div className="print-area pt-4 px-4 max-w-6xl mx-auto bg-white border-black text-sm ">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-green-700 flex items-center gap-2">
@@ -137,7 +137,6 @@ const QuotationBill = () => {
               </div>
             </div>
           </div>
-
           {/* Spacer for print header to avoid overlap */}
           {/* <div className="hidden print:block h- 28"></div> */}
 
@@ -219,20 +218,22 @@ const QuotationBill = () => {
         </div>
 
         {/* Summary Section */}
-        <h2 className="mt-6 mb-2 text-green-700 font-semibold text-base">💰 खर्चाचा सारांश - Cost Summary</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-green-800">
-          <SummaryField label="Total Plants (7 Feet x5 Feet)" value={additionalInfo.totalPlants || 0} />
-          <SummaryField label="Total Acres" value={additionalInfo.totalAcres || 0} />
-          <SummaryField label="Total Guntha" value={additionalInfo.totalGuntha || 0} />
-          <SummaryField label="Total Cost" value={`₹${additionalInfo.totalCost || 0}`} />
-          <SummaryField label="Per Plant Cost" value={`₹${additionalInfo.perPlantCost || 0}`} />
-        </div>
+        <div className="page-break-block">
+          <h2 className="mt-6 mb-2 text-green-700 font-semibold text-base">💰 खर्चाचा सारांश - Cost Summary</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-green-800">
+            <SummaryField label="Total Plants (7 Feet x5 Feet)" value={additionalInfo.totalPlants || 0} />
+            <SummaryField label="Total Acres" value={additionalInfo.totalAcres || 0} />
+            <SummaryField label="Total Guntha" value={additionalInfo.totalGuntha || 0} />
+            <SummaryField label="Total Cost" value={`₹${additionalInfo.totalCost || 0}`} />
+            <SummaryField label="Per Plant Cost" value={`₹${additionalInfo.perPlantCost || 0}`} />
+          </div>
 
-        {/* Grouped Cost Sections */}
-        <GroupedCost title="🌿 पर्णनेत्र उत्पादों की लागत" data={additionalInfo.leafProductCost} />
-        <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={additionalInfo.bioControlCost} />
-        <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={additionalInfo.fieldInputPrepCost} />
-        <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={additionalInfo.smokeCost} />
+          {/* Grouped Cost Sections */}
+          <GroupedCost title="🌿 पर्णनेत्र उत्पादों की लागत" data={additionalInfo.leafProductCost} />
+          <GroupedCost title="🧪 जैव नियंत्रण उत्पादों की लागत" data={additionalInfo.bioControlCost} />
+          <GroupedCost title="🧂 खेत पर इनपुट तैयार करने की लागत" data={additionalInfo.fieldInputPrepCost} />
+          <GroupedCost title="🔥 खेत पर पत्तों से धुवा की लागत" data={additionalInfo.smokeCost} />
+        </div>
       </div>
       <div className="hidden print:block h-5 fixed bottom-0 left-0 right-0 text-center text-xs border-t border-gray-300 bg-white py-1">
         📍 235 Gov. Press Colony DABHA, Nagpur, 440023 &nbsp; | &nbsp; ✉️ info@parnanetra.org - parnanetra.org &nbsp; | &nbsp; 📞 +012 345 67890

@@ -120,3 +120,21 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield; /* Firefox */
 }
+
+@media print {
+  /* Default: First page = no margin */
+  .page-break-block {
+    padding-top: 0 !important;
+  }
+
+  /* Every block AFTER the first gets margin for header space */
+  .page-break-block:not(:first-child) {
+    padding-top: 100px !important; /* adjust to header height */
+  }
+
+  /* Prevent Chrome from breaking inside your blocks */
+  .page-break-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
