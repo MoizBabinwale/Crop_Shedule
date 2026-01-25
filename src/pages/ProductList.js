@@ -179,7 +179,7 @@ const ProductList = () => {
                 value={productRate}
                 onChange={(e) => setProductRate(e.target.value)}
                 min="0"
-                step="0.01"
+                step="any"
               />
             </div>
 
