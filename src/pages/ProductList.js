@@ -174,7 +174,7 @@ const ProductList = () => {
               <label className="mb-1 text-green-800 font-medium text-sm">दर (ml/gram Rate)</label>
               <input
                 type="number"
-                placeholder="उदा. 4.5"
+                placeholder="उदा. 0.5"
                 className="border border-green-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                 value={productRate}
                 onChange={(e) => setProductRate(e.target.value)}
